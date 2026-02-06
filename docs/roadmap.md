@@ -28,6 +28,9 @@
   - `README.md` に実装ハイライト・upstream/ライセンス情報・実行例を追記
   - `docs/release-notes.md` に初回公開向けリリースノート草案を追加
   - `docs/release-process.md` にタグ運用（`X.Y.Z`）と公開手順を明文化
+- Phase 6 着手:
+  - `scripts/release_prep.sh` を追加し、公開前チェックをワンコマンド化
+  - `README.md` / `docs/release-process.md` / `docs/github-publication-checklist.md` を同スクリプト前提で整理
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
@@ -85,3 +88,11 @@
 
 完了条件:
 - `main` への push と release 公開が完了
+
+## Phase 6: 公開運用の標準化
+
+- 公開前チェックをスクリプト化して手順ぶれを抑える
+- リリース手順書とチェックリストを同一フローへ統一する
+
+完了条件:
+- `./scripts/release_prep.sh --tag X.Y.Z` が公開前の標準コマンドとして文書化されている

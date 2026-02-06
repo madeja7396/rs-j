@@ -44,6 +44,12 @@ cargo run --release -- --help
 cargo run --release -- --safe_terminal --width_mode cjk
 ```
 
+## 公開前チェック
+
+```bash
+./scripts/release_prep.sh --tag 0.12.5
+```
+
 ## 上流同期
 
 ```bash
