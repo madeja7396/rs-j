@@ -34,6 +34,7 @@ use crate::{
     app::{filter::Filter, layout_manager::*, *},
     canvas::components::time_graph::LegendPosition,
     constants::*,
+    localization::{UiLanguage, set_ui_language},
     utils::{
         data_units::DataUnit,
         terminal::{is_wsl, should_auto_enable_dot_marker},
@@ -341,9 +342,11 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         dedicated_average_row: get_dedicated_avg_row(config),
         default_tree_collapse: is_default_tree_collapsed,
         text_width_mode: get_text_width_mode(args, config)?,
+        ui_language: get_ui_language(args, config)?,
         #[cfg(feature = "zfs")]
         free_arc,
     };
+    set_ui_language(app_config_fields.ui_language);
 
     let table_config = ProcTableConfig {
         is_case_sensitive,
@@ -753,6 +756,20 @@ fn get_text_width_mode(args: &BottomArgs, config: &Config) -> OptionResult<TextW
     }
 }
 
+fn get_ui_language(args: &BottomArgs, config: &Config) -> OptionResult<UiLanguage> {
+    if let Some(language) = &args.general.ui_language {
+        parse_arg_value!(UiLanguage::from_str(language), "ui_language")
+    } else if let Some(flags) = &config.flags {
+        if let Some(language) = &flags.ui_language {
+            parse_config_value!(UiLanguage::from_str(language), "ui_language")
+        } else {
+            Ok(UiLanguage::default())
+        }
+    } else {
+        Ok(UiLanguage::default())
+    }
+}
+
 /// Yes, this function gets whether to show average CPU (true) or not (false).
 fn get_show_average_cpu(args: &BottomArgs, config: &Config) -> bool {
     if args.cpu.hide_avg_cpu {
@@ -1107,10 +1124,11 @@ mod test {
     use crate::{
         app::App,
         args::BottomArgs,
+        localization::UiLanguage,
         options::{
             config::flags::GeneralConfig, get_default_time_value, get_retention,
-            get_safe_terminal_mode, get_text_width_mode, get_update_rate, get_use_dot_marker,
-            try_parse_ms,
+            get_safe_terminal_mode, get_text_width_mode, get_ui_language, get_update_rate,
+            get_use_dot_marker, try_parse_ms,
         },
     };
 
@@ -1187,16 +1205,16 @@ mod test {
     fn config_human_times() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config::default();
-        let flags = GeneralConfig {
-            time_delta: Some("2 min".to_string().into()),
-            default_time_value: Some("300s".to_string().into()),
-            rate: Some("1s".to_string().into()),
-            retention: Some("10m".to_string().into()),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                time_delta: Some("2 min".to_string().into()),
+                default_time_value: Some("300s".to_string().into()),
+                rate: Some("1s".to_string().into()),
+                retention: Some("10m".to_string().into()),
+                ..Default::default()
+            }),
             ..Default::default()
         };
-
-        config.flags = Some(flags);
 
         assert_eq!(
             get_time_interval(&args, &config, 60 * 60 * 1000),
@@ -1217,16 +1235,16 @@ mod test {
     fn config_number_times_as_string() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config::default();
-        let flags = GeneralConfig {
-            time_delta: Some("120000".to_string().into()),
-            default_time_value: Some("300000".to_string().into()),
-            rate: Some("1000".to_string().into()),
-            retention: Some("600000".to_string().into()),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                time_delta: Some("120000".to_string().into()),
+                default_time_value: Some("300000".to_string().into()),
+                rate: Some("1000".to_string().into()),
+                retention: Some("600000".to_string().into()),
+                ..Default::default()
+            }),
             ..Default::default()
         };
-
-        config.flags = Some(flags);
 
         assert_eq!(
             get_time_interval(&args, &config, 60 * 60 * 1000),
@@ -1247,16 +1265,16 @@ mod test {
     fn config_number_times_as_num() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config::default();
-        let flags = GeneralConfig {
-            time_delta: Some(120000.into()),
-            default_time_value: Some(300000.into()),
-            rate: Some(1000.into()),
-            retention: Some(600000.into()),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                time_delta: Some(120000.into()),
+                default_time_value: Some(300000.into()),
+                rate: Some(1000.into()),
+                retention: Some(600000.into()),
+                ..Default::default()
+            }),
             ..Default::default()
         };
-
-        config.flags = Some(flags);
 
         assert_eq!(
             get_time_interval(&args, &config, 60 * 60 * 1000),
@@ -1292,7 +1310,7 @@ mod test {
     fn dot_marker_config_can_enable_or_disable() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config {
+        let config = Config {
             flags: Some(GeneralConfig {
                 dot_marker: Some(true),
                 ..Default::default()
@@ -1301,10 +1319,13 @@ mod test {
         };
         assert!(get_use_dot_marker(&args, &config));
 
-        config.flags = Some(GeneralConfig {
-            dot_marker: Some(false),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                dot_marker: Some(false),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         assert!(!get_use_dot_marker(&args, &config));
     }
 
@@ -1327,7 +1348,7 @@ mod test {
     fn safe_terminal_config_can_enable_or_disable() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config {
+        let config = Config {
             flags: Some(GeneralConfig {
                 safe_terminal: Some(true),
                 ..Default::default()
@@ -1336,11 +1357,42 @@ mod test {
         };
         assert!(get_safe_terminal_mode(&args, &config));
 
-        config.flags = Some(GeneralConfig {
-            safe_terminal: Some(false),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                safe_terminal: Some(false),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         assert!(!get_safe_terminal_mode(&args, &config));
+    }
+
+    #[test]
+    fn ui_language_cli_overrides_config() {
+        let args = BottomArgs::parse_from(["btm", "--ui-language", "en"]);
+        let config = Config {
+            flags: Some(GeneralConfig {
+                ui_language: Some("ja".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        assert_eq!(get_ui_language(&args, &config), Ok(UiLanguage::English));
+    }
+
+    #[test]
+    fn ui_language_config_parses() {
+        let args = BottomArgs::parse_from(["btm"]);
+        let config = Config {
+            flags: Some(GeneralConfig {
+                ui_language: Some("en".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        assert_eq!(get_ui_language(&args, &config), Ok(UiLanguage::English));
     }
 
     #[test]

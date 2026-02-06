@@ -11,6 +11,7 @@ pub(crate) struct GeneralConfig {
     pub(crate) dot_marker: Option<bool>,
     pub(crate) safe_terminal: Option<bool>,
     pub(crate) width_mode: Option<String>,
+    pub(crate) ui_language: Option<String>,
     pub(crate) temperature_type: Option<String>,
     pub(crate) rate: Option<StringOrNum>,
     pub(crate) cpu_left_legend: Option<bool>,

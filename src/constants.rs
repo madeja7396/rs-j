@@ -270,6 +270,10 @@ pub(crate) const CONFIG_TEXT: &str = r#"# This is a default config file for bott
 # One of: "normal", "cjk", "unicode-approx"
 #width_mode = "normal"
 
+# UI language.
+# One of: "ja", "en"
+#ui_language = "ja"
+
 # The update rate of the application.
 #rate = "1s"
 

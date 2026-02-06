@@ -250,6 +250,16 @@ pub struct GeneralArgs {
     pub width_mode: Option<String>,
 
     #[arg(
+        long,
+        value_name = "LANG",
+        help = "Sets UI language.",
+        long_help = "Sets UI language. One of: ja, en.",
+        value_parser = ["ja", "en"],
+        alias = "ui-language"
+    )]
+    pub ui_language: Option<String>,
+
+    #[arg(
         short = 'e',
         long,
         action = ArgAction::SetTrue,

@@ -18,6 +18,7 @@ use crate::{
         components::time_graph::LegendPosition, dialogs::process_kill_dialog::ProcessKillDialog,
     },
     constants,
+    localization::UiLanguage,
     utils::{data_units::DataUnit, text_width::TextWidthMode},
     widgets::{ProcWidgetColumn, ProcWidgetMode, TreeCollapsed},
 };
@@ -74,6 +75,7 @@ pub struct AppConfigFields {
     pub dedicated_average_row: bool,
     pub default_tree_collapse: bool,
     pub text_width_mode: TextWidthMode,
+    pub ui_language: UiLanguage,
 }
 
 /// For filtering out information
