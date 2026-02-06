@@ -6,6 +6,10 @@
 - `LICENSE`（MIT）と upstream クレジットを確認済み
 - `.gitignore` と `.editorconfig` が適用されている
 - `docs/release-process.md` にタグ運用ルールが記載されている
+- Repository variables を設定済み:
+  - `RSJ_ENABLE_PAGES_DEPLOY=1`
+  - `RSJ_ENABLE_RELEASE_PIPELINE=1`
+- Actions の Workflow permissions が `Read and write permissions`
 
 ## 開発環境
 

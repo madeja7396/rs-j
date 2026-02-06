@@ -43,6 +43,7 @@ jobs:
 
   docs:
     needs: [initialize]
+    if: ${{ github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1' }}
     runs-on: ubuntu-latest
     steps:
       - name: Set release version
@@ -76,11 +77,13 @@ jobs:
 
   publish-gh-pages:
     needs: [docs]
+    if: ${{ github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1' }}
     uses: ./.github/workflows/publish_github_pages.yml
     secrets: inherit
 
   chocolatey:
     needs: [initialize]
+    if: ${{ github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_CHOCOLATEY_DISPATCH == '1' }}
     runs-on: ubuntu-latest
     steps:
       - name: Set release version

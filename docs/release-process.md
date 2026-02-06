@@ -20,6 +20,14 @@ cargo clippy --all-targets --features deploy -- -D warnings
 cargo test --lib
 ```
 
+GitHub Actions の公開系ジョブを使う場合:
+
+- Repository variables:
+  - `RSJ_ENABLE_PAGES_DEPLOY=1`（docs / gh-pages 公開を有効化）
+  - `RSJ_ENABLE_RELEASE_PIPELINE=1`（tag push で deployment を有効化）
+- Repository settings:
+  - Actions -> General -> Workflow permissions を `Read and write permissions` に設定
+
 ## 2. タグ方針
 
 - GitHub `deployment` workflow の自動起動条件は **`X.Y.Z` 形式タグ** です。
@@ -50,6 +58,7 @@ git push origin 0.12.5
 
 補足:
 - `./scripts/release_prep.sh --skip-clippy` / `--skip-tests` で段階実行も可能
+- fork では上記 variables 未設定時、`docs` は build のみ実行し、`deployment` はスキップされる
 
 ## 5. Release ページ公開
 

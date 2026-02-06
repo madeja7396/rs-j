@@ -26,6 +26,7 @@ env:
 jobs:
   build-documentation:
     name: Build and deploy docs
+    if: ${{ github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -43,14 +44,28 @@ jobs:
       - name: Configure git user and email
         run: ./scripts/ci/configure_git.sh
 
-      - name: Build and deploy docs with mike
+      - name: Build docs only (fork-safe default)
+        if: ${{ github.repository != 'ClementTsang/bottom' && vars.RSJ_ENABLE_PAGES_DEPLOY != '1' && github.event_name == 'push' }}
+        run: |
+          cd docs
+          mkdocs build
+
+      - name: Build and deploy docs with mike (workflow_call)
+        if: ${{ github.event_name == 'workflow_call' && (github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1') }}
         env:
-          MKDOCS_NIGHTLY_RELEASE_OVERRIDE: ${{ inputs.nightly || '' }}
+          MKDOCS_NIGHTLY_RELEASE_OVERRIDE: ${{ inputs.nightly }}
+        run: |
+          cd docs
+          mike deploy nightly --push
+
+      - name: Build and deploy docs with mike (push/workflow_dispatch)
+        if: ${{ github.event_name != 'workflow_call' && (github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1') }}
         run: |
           cd docs
           mike deploy nightly --push
 
   publish-gh-pages:
     needs: [build-documentation]
+    if: ${{ github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1' }}
     uses: ./.github/workflows/publish_github_pages.yml
     secrets: inherit

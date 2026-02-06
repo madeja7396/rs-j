@@ -31,6 +31,9 @@
 - Phase 6 着手:
   - `scripts/release_prep.sh` を追加し、公開前チェックをワンコマンド化
   - `README.md` / `docs/release-process.md` / `docs/github-publication-checklist.md` を同スクリプト前提で整理
+- Phase 7 着手:
+  - fork 既定で公開系 workflow を安全側に寄せる（docs build-only / deployment skip）
+  - `RSJ_ENABLE_PAGES_DEPLOY` / `RSJ_ENABLE_RELEASE_PIPELINE` で公開系 workflow を明示有効化
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
@@ -96,3 +99,11 @@
 
 完了条件:
 - `./scripts/release_prep.sh --tag X.Y.Z` が公開前の標準コマンドとして文書化されている
+
+## Phase 7: CI 公開フロー安定化
+
+- fork で write 権限がない場合でも workflow が失敗しない構成にする
+- 公開系 workflow を repository variables で明示制御する
+
+完了条件:
+- `docs` / `deployment` の startup failure が解消される

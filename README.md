@@ -69,3 +69,10 @@ git merge upstream/main
 - 公開チェックリスト: `docs/github-publication-checklist.md`
 - リリース手順: `docs/release-process.md`
 - リリースノート草案: `docs/release-notes.md`
+
+## CI 補足
+
+- fork 既定では公開系 workflow は安全側（`docs` は build のみ、`deployment` はスキップ）
+- 公開を有効化する場合は Repository variables を設定:
+  - `RSJ_ENABLE_PAGES_DEPLOY=1`
+  - `RSJ_ENABLE_RELEASE_PIPELINE=1`
