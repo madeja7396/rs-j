@@ -107,10 +107,16 @@ fn check_if_terminal() {
 }
 
 /// Show environment-specific caveats that can affect metrics/readability.
-fn check_environment_notes() {
+fn check_environment_notes(app_config_fields: &AppConfigFields) {
     if utils::terminal::is_wsl() {
         eprintln!(
             "Note: WSL environment detected. Some metrics (for example, temperatures) may not match native Windows tools."
+        );
+    }
+
+    if app_config_fields.safe_terminal_mode {
+        eprintln!(
+            "Note: Safe terminal profile is enabled (basic layout + dot markers) for compatibility."
         );
     }
 }
@@ -328,7 +334,7 @@ pub fn start_bottom(enable_error_hook: &mut bool) -> anyhow::Result<()> {
 
     // Check if the current environment is in a terminal.
     check_if_terminal();
-    check_environment_notes();
+    check_environment_notes(&app.app_config_fields);
 
     let cancellation_token = Arc::new(CancellationToken::default());
     let (sender, receiver) = mpsc::channel();

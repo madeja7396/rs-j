@@ -8,6 +8,7 @@
   - Windows cmd/PowerShell 風環境を検出して `dot_marker` を自動有効化
   - `--dot_marker` と `config.flags.dot_marker` は自動判定より優先
   - WSL 検出時に起動メッセージで既知制約を通知
+  - `--safe_terminal` / `flags.safe_terminal` で互換重視プロファイル（basic + dot）を適用
 - Phase 3 着手:
   - `width_mode`（`normal` / `cjk` / `unicode-approx`）を CLI と config に追加
   - プロセス検索クエリの幅計算に `width_mode` を適用

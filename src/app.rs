@@ -44,6 +44,7 @@ pub struct AppConfigFields {
     pub unnormalized_cpu: bool,
     pub get_process_threads: bool,
     pub use_basic_mode: bool,
+    pub safe_terminal_mode: bool,
     pub default_time_value: u64,
     pub time_interval: u64,
     pub hide_time: bool,

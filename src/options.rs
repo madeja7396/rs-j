@@ -230,7 +230,8 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
     let autohide_time = is_flag_enabled!(autohide_time, args.general, config);
     let default_time_value = get_default_time_value(args, config, retention_ms)?;
 
-    let use_basic_mode = is_flag_enabled!(basic, args.general, config);
+    let safe_terminal_mode = get_safe_terminal_mode(args, config);
+    let use_basic_mode = is_flag_enabled!(basic, args.general, config) || safe_terminal_mode;
     let expanded = is_flag_enabled!(expanded, args.general, config);
     #[cfg(feature = "zfs")]
     let free_arc = is_flag_enabled!(free_arc, args.memory, config);
@@ -301,12 +302,13 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         temperature_type: get_temperature(args, config)
             .context("Update 'temperature_type' in your config file.")?,
         show_average_cpu: get_show_average_cpu(args, config),
-        use_dot: get_use_dot_marker(args, config),
+        use_dot: get_use_dot_marker(args, config) || safe_terminal_mode,
         cpu_left_legend: is_flag_enabled!(cpu_left_legend, args.cpu, config),
         use_current_cpu_total: is_flag_enabled!(current_usage, args.process, config),
         unnormalized_cpu: is_flag_enabled!(unnormalized_cpu, args.process, config),
         get_process_threads: is_flag_enabled_new!(get_threads, args.process, config.processes),
         use_basic_mode,
+        safe_terminal_mode,
         default_time_value,
         time_interval: get_time_interval(args, config, retention_ms)?,
         hide_time: is_flag_enabled!(hide_time, args.general, config),
@@ -779,6 +781,24 @@ fn get_use_dot_marker(args: &BottomArgs, config: &Config) -> bool {
     }
 }
 
+/// Whether to force a safer terminal profile for limited environments.
+///
+/// Priority:
+/// 1) CLI flag (`--safe_terminal`)
+/// 2) Config file (`[flags].safe_terminal`)
+/// 3) Automatic default on legacy Windows terminal hosts
+fn get_safe_terminal_mode(args: &BottomArgs, config: &Config) -> bool {
+    if args.general.safe_terminal {
+        true
+    } else if let Some(flags) = &config.flags {
+        flags
+            .safe_terminal
+            .unwrap_or_else(should_auto_enable_dot_marker)
+    } else {
+        should_auto_enable_dot_marker()
+    }
+}
+
 // I hate this too.
 fn get_default_cpu_selection(args: &BottomArgs, config: &Config) -> config::cpu::CpuDefault {
     match &args.cpu.default_cpu_entry {
@@ -1086,7 +1106,8 @@ mod test {
         args::BottomArgs,
         options::{
             config::flags::GeneralConfig, get_default_time_value, get_retention,
-            get_text_width_mode, get_update_rate, get_use_dot_marker, try_parse_ms,
+            get_safe_terminal_mode, get_text_width_mode, get_update_rate, get_use_dot_marker,
+            try_parse_ms,
         },
     };
 
@@ -1278,6 +1299,37 @@ mod test {
             ..Default::default()
         });
         assert!(!get_use_dot_marker(&args, &config));
+    }
+
+    #[test]
+    fn safe_terminal_cli_overrides_config() {
+        let args = BottomArgs::parse_from(["btm", "--safe_terminal"]);
+
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            safe_terminal: Some(false),
+            ..Default::default()
+        });
+
+        assert!(get_safe_terminal_mode(&args, &config));
+    }
+
+    #[test]
+    fn safe_terminal_config_can_enable_or_disable() {
+        let args = BottomArgs::parse_from(["btm"]);
+
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            safe_terminal: Some(true),
+            ..Default::default()
+        });
+        assert!(get_safe_terminal_mode(&args, &config));
+
+        config.flags = Some(GeneralConfig {
+            safe_terminal: Some(false),
+            ..Default::default()
+        });
+        assert!(!get_safe_terminal_mode(&args, &config));
     }
 
     #[test]

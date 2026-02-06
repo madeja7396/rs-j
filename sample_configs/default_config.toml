@@ -16,6 +16,10 @@
 # If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts.
 #dot_marker = false
 
+# Enables a safer terminal profile for legacy/limited terminals.
+# Implies basic layout + dot markers.
+#safe_terminal = false
+
 # Width calculation mode for text-heavy widgets.
 # One of: "normal", "cjk", "unicode-approx"
 #width_mode = "normal"

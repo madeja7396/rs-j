@@ -17,6 +17,7 @@ see information on these options by running `btm -h`, or run `btm --help` to dis
 | `--disable_keys`                    | Disables keyboard shortcuts, INCLUDING the ones that stop  |
 |                                     | bottom.                                                    |
 | `-m`, `--dot_marker`                | Uses a dot marker for graphs. If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts. |
+| `--safe_terminal`                   | Enables a safer terminal profile (basic layout + dot markers). |
 | `--width_mode <MODE>`               | Sets text width calculation mode (`normal`, `cjk`, `unicode-approx`). |
 | `-e`, `--expanded`                  | Expand the default widget upon starting the app.           |
 | `--hide_table_gap`                  | Hides spacing between table headers and entries.           |

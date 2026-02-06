@@ -230,6 +230,16 @@ pub struct GeneralArgs {
 
     #[arg(
         long,
+        action = ArgAction::SetTrue,
+        help = "Enables a safer terminal profile.",
+        long_help = "Enables a safer terminal profile for legacy/limited terminals. \
+                This implies a basic layout and dot markers to reduce rendering breakage.",
+        alias = "safe-terminal"
+    )]
+    pub safe_terminal: bool,
+
+    #[arg(
+        long,
         value_name = "MODE",
         help = "Sets text width calculation mode.",
         long_help = "Sets text width calculation mode. \

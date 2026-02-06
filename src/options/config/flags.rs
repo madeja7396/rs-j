@@ -9,6 +9,7 @@ use super::StringOrNum;
 pub(crate) struct GeneralConfig {
     pub(crate) hide_avg_cpu: Option<bool>,
     pub(crate) dot_marker: Option<bool>,
+    pub(crate) safe_terminal: Option<bool>,
     pub(crate) width_mode: Option<String>,
     pub(crate) temperature_type: Option<String>,
     pub(crate) rate: Option<StringOrNum>,
