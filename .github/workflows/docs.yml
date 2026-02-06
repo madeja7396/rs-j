@@ -5,12 +5,6 @@ name: docs
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      nightly:
-        description: "Optional nightly redirect override"
-        default: ""
-        required: false
-        type: string
   push:
     branches:
       - main
@@ -52,8 +46,6 @@ jobs:
 
       - name: Build and deploy docs with mike (workflow_call)
         if: ${{ github.event_name == 'workflow_call' && (github.repository == 'ClementTsang/bottom' || vars.RSJ_ENABLE_PAGES_DEPLOY == '1') }}
-        env:
-          MKDOCS_NIGHTLY_RELEASE_OVERRIDE: ${{ inputs.nightly }}
         run: |
           cd docs
           mike deploy nightly --push
