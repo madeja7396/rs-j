@@ -61,4 +61,5 @@ git merge upstream/main
 - 方針原文: `docs/shoki-keikaku.md`
 - 実装ロードマップ: `docs/roadmap.md`
 - 公開チェックリスト: `docs/github-publication-checklist.md`
+- リリース手順: `docs/release-process.md`
 - リリースノート草案: `docs/release-notes.md`

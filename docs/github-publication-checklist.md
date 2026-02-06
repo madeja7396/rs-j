@@ -5,6 +5,7 @@
 - `README.md` に目的・セットアップ・運用方針がある
 - `LICENSE`（MIT）と upstream クレジットを確認済み
 - `.gitignore` と `.editorconfig` が適用されている
+- `docs/release-process.md` にタグ運用ルールが記載されている
 
 ## 開発環境
 
@@ -26,8 +27,8 @@
 
 ## 公開作業
 
-- `git remote add origin <your-repo-url>`
-- `git add .`
-- `git commit -m "chore: bootstrap project"`
-- `git push -u origin main`
-- GitHub で description / topics / release を設定
+- `main` が最新 (`git pull --ff-only origin main`)
+- `cargo fmt --all` / `clippy` / `test` が通過
+- `X.Y.Z` 形式タグを作成して push（例: `0.12.5`）
+- `deployment` workflow が起動・成功
+- GitHub で description / topics / release notes を設定・公開

@@ -27,6 +27,7 @@
 - Phase 5 着手:
   - `README.md` に実装ハイライト・upstream/ライセンス情報・実行例を追記
   - `docs/release-notes.md` に初回公開向けリリースノート草案を追加
+  - `docs/release-process.md` にタグ運用（`X.Y.Z`）と公開手順を明文化
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 

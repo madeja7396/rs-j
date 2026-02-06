@@ -27,6 +27,7 @@ Next:
   ./scripts/check_env.sh
 
 Note:
-  Windows cmd / PowerShell ではフォントによって点グラフが崩れる場合があります。
-  本プロジェクトでは将来的に端末判定による安全デフォルトを実装予定です。
+  Windows cmd / PowerShell ではフォント差により描画崩れが起きる場合があります。
+  rs-j は safe terminal プロファイル（basic + ASCII寄り描画）を提供しています。
+  例: cargo run --release -- --safe_terminal --width_mode cjk
 EOF
