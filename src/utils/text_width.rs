@@ -12,6 +12,16 @@ pub enum TextWidthMode {
     UnicodeApprox,
 }
 
+impl TextWidthMode {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            TextWidthMode::Normal => "normal",
+            TextWidthMode::Cjk => "cjk",
+            TextWidthMode::UnicodeApprox => "unicode-approx",
+        }
+    }
+}
+
 impl FromStr for TextWidthMode {
     type Err = ();
 

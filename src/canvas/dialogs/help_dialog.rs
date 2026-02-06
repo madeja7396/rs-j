@@ -11,7 +11,7 @@ use crate::{
     app::App,
     canvas::{Painter, drawing_utils::dialog_block},
     constants::{self, HELP_TEXT},
-    utils::text_width::display_width,
+    utils::{terminal, text_width::display_width},
 };
 
 // TODO: [REFACTOR] Make generic dialog boxes to build off of instead?
@@ -39,7 +39,22 @@ impl Painter {
     }
 
     pub fn draw_help_dialog(&self, f: &mut Frame<'_>, app_state: &mut App, draw_loc: Rect) {
-        let styled_help_text = self.help_text_lines();
+        let environment_summary = format!(
+            "Environment: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+            app_state.app_config_fields.safe_terminal_mode,
+            app_state.app_config_fields.use_dot,
+            app_state.app_config_fields.text_width_mode.as_str(),
+            terminal::is_wsl(),
+        );
+
+        let mut styled_help_text = vec![
+            Line::from(Span::styled(
+                environment_summary.clone(),
+                self.styles.table_header_style,
+            )),
+            Line::default(),
+        ];
+        styled_help_text.extend(self.help_text_lines());
 
         let block = dialog_block(self.styles.border_type)
             .border_style(self.styles.border_style)
@@ -54,8 +69,15 @@ impl Painter {
 
             app_state.help_dialog_state.height = block.inner(draw_loc).height;
 
-            let mut overflow_buffer = 0;
             let paragraph_width = max(draw_loc.width.saturating_sub(2), 1);
+            let env_wrap_buffer = display_width(
+                &environment_summary,
+                app_state.app_config_fields.text_width_mode,
+            )
+            .saturating_sub(1) as u16
+                / paragraph_width;
+            let shortcut_base = 2 + env_wrap_buffer;
+            let mut overflow_buffer = env_wrap_buffer;
             let mut prev_section_len = 0;
 
             constants::HELP_TEXT
@@ -74,7 +96,7 @@ impl Painter {
                                 / paragraph_width;
                         });
 
-                        app_state.help_dialog_state.index_shortcuts[itx] = 0;
+                        app_state.help_dialog_state.index_shortcuts[itx] = shortcut_base;
                     } else {
                         section.iter().for_each(|text_line| {
                             buffer += display_width(
