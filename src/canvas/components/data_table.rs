@@ -159,6 +159,7 @@ mod test {
     use std::{borrow::Cow, num::NonZeroU16};
 
     use super::*;
+    use crate::utils::text_width::TextWidthMode;
 
     #[derive(Clone, PartialEq, Eq, Debug)]
     struct TestType {
@@ -173,7 +174,7 @@ mod test {
         }
 
         fn column_widths<C: DataTableColumn<&'static str>>(
-            _data: &[Self], _columns: &[C],
+            _data: &[Self], _columns: &[C], _width_mode: TextWidthMode,
         ) -> Vec<u16>
         where
             Self: Sized,

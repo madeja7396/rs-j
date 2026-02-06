@@ -7,7 +7,10 @@ use crate::{
         SortDataTable, SortDataTableProps, SortOrder, SortsRow,
     },
     options::config::style::Styles,
-    utils::general::sort_partial_fn,
+    utils::{
+        general::sort_partial_fn,
+        text_width::{TextWidthMode, display_width},
+    },
 };
 
 #[derive(Clone, Debug)]
@@ -50,7 +53,7 @@ impl DataToCell<TempWidgetColumn> for TempWidgetData {
     }
 
     fn column_widths<C: DataTableColumn<TempWidgetColumn>>(
-        data: &[TempWidgetData], _columns: &[C],
+        data: &[TempWidgetData], _columns: &[C], width_mode: TextWidthMode,
     ) -> Vec<u16>
     where
         Self: Sized,
@@ -58,8 +61,11 @@ impl DataToCell<TempWidgetColumn> for TempWidgetData {
         let mut widths = vec![0; 2];
 
         data.iter().for_each(|row| {
-            widths[0] = max(widths[0], row.sensor.len() as u16);
-            widths[1] = max(widths[1], row.temperature().len() as u16);
+            widths[0] = max(widths[0], display_width(&row.sensor, width_mode) as u16);
+            widths[1] = max(
+                widths[1],
+                display_width(row.temperature().as_ref(), width_mode) as u16,
+            );
         });
 
         widths

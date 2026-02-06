@@ -8,6 +8,7 @@ use tui::{
 use crate::{
     app::{App, layout_manager::BottomWidgetType},
     canvas::Painter,
+    utils::text_width::display_width,
 };
 
 impl Painter {
@@ -87,8 +88,11 @@ impl Painter {
             // TODO: I can do this text effect as just a border now!
             let left_name = left_table.get_pretty_name();
             let right_name = right_table.get_pretty_name();
+            let width_mode = app_state.app_config_fields.text_width_mode;
+            let left_name_width = display_width(left_name, width_mode);
+            let right_name_width = display_width(right_name, width_mode);
             let num_spaces =
-                usize::from(draw_loc.width).saturating_sub(6 + left_name.len() + right_name.len());
+                usize::from(draw_loc.width).saturating_sub(6 + left_name_width + right_name_width);
             let carousel_text_style = if widget_id == app_state.current_widget.widget_id {
                 self.styles.highlighted_border_style
             } else {
@@ -108,9 +112,9 @@ impl Painter {
             let margined_draw_loc = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
-                    Constraint::Length(2 + left_name.len() as u16),
+                    Constraint::Length(2 + left_name_width as u16),
                     Constraint::Length(num_spaces as u16),
-                    Constraint::Length(2 + right_name.len() as u16),
+                    Constraint::Length(2 + right_name_width as u16),
                 ])
                 .horizontal_margin(1)
                 .split(draw_loc);

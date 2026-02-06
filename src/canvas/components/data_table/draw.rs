@@ -154,7 +154,8 @@ where
         } else {
             // Calculate widths
             if draw_info.recalculate_column_widths {
-                let col_widths = DataType::column_widths(&self.data, &self.columns);
+                let col_widths =
+                    DataType::column_widths(&self.data, &self.columns, draw_info.text_width_mode);
 
                 self.columns
                     .iter_mut()

@@ -4,6 +4,7 @@ use tui::widgets::Row;
 
 use super::{ColumnHeader, DataTableColumn};
 use crate::canvas::Painter;
+use crate::utils::text_width::TextWidthMode;
 
 pub trait DataToCell<H>
 where
@@ -37,7 +38,9 @@ where
     }
 
     /// Returns the desired column widths in light of having seen data.
-    fn column_widths<C: DataTableColumn<H>>(data: &[Self], columns: &[C]) -> Vec<u16>
+    fn column_widths<C: DataTableColumn<H>>(
+        data: &[Self], columns: &[C], width_mode: TextWidthMode,
+    ) -> Vec<u16>
     where
         Self: Sized;
 }

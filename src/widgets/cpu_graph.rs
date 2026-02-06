@@ -111,7 +111,7 @@ impl DataToCell<CpuWidgetColumn> for CpuWidgetTableData {
     }
 
     fn column_widths<C: DataTableColumn<CpuWidgetColumn>>(
-        _data: &[Self], _columns: &[C],
+        _data: &[Self], _columns: &[C], _width_mode: crate::utils::text_width::TextWidthMode,
     ) -> Vec<u16>
     where
         Self: Sized,

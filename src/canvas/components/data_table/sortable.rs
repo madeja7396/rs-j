@@ -355,6 +355,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::utils::text_width::TextWidthMode;
 
     #[derive(Clone, PartialEq, Eq, Debug)]
     struct TestType {
@@ -374,7 +375,9 @@ mod test {
             None
         }
 
-        fn column_widths<C: DataTableColumn<ColumnType>>(_data: &[Self], _columns: &[C]) -> Vec<u16>
+        fn column_widths<C: DataTableColumn<ColumnType>>(
+            _data: &[Self], _columns: &[C], _width_mode: TextWidthMode,
+        ) -> Vec<u16>
         where
             Self: Sized,
         {

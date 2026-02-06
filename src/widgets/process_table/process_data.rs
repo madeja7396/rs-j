@@ -18,7 +18,10 @@ use crate::{
     },
     collection::processes::{Pid, ProcessHarvest},
     dec_bytes_per_second_string,
-    utils::data_units::{GIBI_LIMIT, GIGA_LIMIT, get_binary_bytes, get_decimal_bytes},
+    utils::{
+        data_units::{GIBI_LIMIT, GIGA_LIMIT, get_binary_bytes, get_decimal_bytes},
+        text_width::{TextWidthMode, display_width},
+    },
 };
 
 #[derive(Clone, Debug)]
@@ -405,7 +408,9 @@ impl DataToCell<ProcColumn> for ProcWidgetData {
         }
     }
 
-    fn column_widths<C: DataTableColumn<ProcColumn>>(data: &[Self], columns: &[C]) -> Vec<u16>
+    fn column_widths<C: DataTableColumn<ProcColumn>>(
+        data: &[Self], columns: &[C], width_mode: TextWidthMode,
+    ) -> Vec<u16>
     where
         Self: Sized,
     {
@@ -413,7 +418,10 @@ impl DataToCell<ProcColumn> for ProcWidgetData {
 
         for d in data {
             for (w, c) in widths.iter_mut().zip(columns) {
-                *w = max(*w, d.to_string(c.inner()).len() as u16);
+                *w = max(
+                    *w,
+                    display_width(&d.to_string(c.inner()), width_mode) as u16,
+                );
             }
         }
 

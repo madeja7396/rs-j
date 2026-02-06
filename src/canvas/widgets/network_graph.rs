@@ -18,9 +18,22 @@ use crate::{
     utils::{
         data_units::*,
         general::{saturating_log2, saturating_log10},
+        text_width::{TextWidthMode, display_width},
     },
     widgets::{NetWidgetHeightCache, NetWidgetState},
 };
+
+fn pad_to_display_width(label: &str, target_width: usize, width_mode: TextWidthMode) -> String {
+    let label_width = display_width(label, width_mode);
+    if label_width >= target_width {
+        label.to_string()
+    } else {
+        let mut padded = String::with_capacity(label.len() + (target_width - label_width));
+        padded.push_str(label);
+        padded.push_str(&" ".repeat(target_width - label_width));
+        padded
+    }
+}
 
 impl Painter {
     pub fn draw_network(
@@ -198,15 +211,18 @@ impl Painter {
                 let tx_label = format!("{:.1}{}{}", tx.0, tx.1, unit);
                 let total_rx_label = format!("{:.1}{}", total_rx.0, total_rx.1);
                 let total_tx_label = format!("{:.1}{}", total_tx.0, total_tx.1);
+                let width_mode = app_state.app_config_fields.text_width_mode;
+                let rx_padded = pad_to_display_width(&rx_label, 10, width_mode);
+                let tx_padded = pad_to_display_width(&tx_label, 10, width_mode);
 
                 vec![
                     GraphData::default()
-                        .name(format!("RX: {rx_label:<10}  All: {total_rx_label}").into())
+                        .name(format!("RX: {rx_padded}  All: {total_rx_label}").into())
                         .time(times)
                         .values(rx_points)
                         .style(self.styles.rx_style),
                     GraphData::default()
-                        .name(format!("TX: {tx_label:<10}  All: {total_tx_label}").into())
+                        .name(format!("TX: {tx_padded}  All: {total_tx_label}").into())
                         .time(times)
                         .values(tx_points)
                         .style(self.styles.tx_style),

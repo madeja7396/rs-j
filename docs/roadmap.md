@@ -18,13 +18,14 @@
   - ヘルプダイアログの行幅見積もりと kill ダイアログの名前切り詰めにも適用
   - basic CPU/MEM の PipeGauge ラベル配置と battery タブ幅にも適用
   - 時系列グラフの軸ラベル/タイトル/凡例レイアウト幅にも `width_mode` を適用
+  - DataTable 系（disk/temp/proc/sort）の列幅算出、basic table carousel、network 凡例パディングにも `display_width` を適用
 - Phase 4 着手:
   - regex 未使用時の文字列検索に NFKC 正規化を適用
   - `ignore_case` 有効時は正規化後の大文字小文字差を吸収
   - 全角/半角・半角カナ揺れの回帰テストを追加
   - 全角の構文トークン（`AND`/`OR`/括弧/接頭辞）も NFKC 経由で解釈
 - 未完了:
-  - grapheme cluster 前提の幅モードを全ウィジェットへ展開
+  - 公開向けの README / リリースノート整備（Phase 5）
 
 ## Phase 0: リポジトリ初期化
 

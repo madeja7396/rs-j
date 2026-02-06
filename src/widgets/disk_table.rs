@@ -10,8 +10,10 @@ use crate::{
     },
     options::config::style::Styles,
     utils::{
-        conversion::dec_bytes_per_second_string, data_units::get_decimal_bytes,
+        conversion::dec_bytes_per_second_string,
+        data_units::get_decimal_bytes,
         general::sort_partial_fn,
+        text_width::{TextWidthMode, display_width},
     },
 };
 
@@ -199,15 +201,20 @@ impl DataToCell<DiskColumn> for DiskWidgetData {
         Some(text)
     }
 
-    fn column_widths<C: DataTableColumn<DiskColumn>>(data: &[Self], _columns: &[C]) -> Vec<u16>
+    fn column_widths<C: DataTableColumn<DiskColumn>>(
+        data: &[Self], _columns: &[C], width_mode: TextWidthMode,
+    ) -> Vec<u16>
     where
         Self: Sized,
     {
         let mut widths = vec![0; 7];
 
         data.iter().for_each(|row| {
-            widths[0] = max(widths[0], row.name.len() as u16);
-            widths[1] = max(widths[1], row.mount_point.len() as u16);
+            widths[0] = max(widths[0], display_width(&row.name, width_mode) as u16);
+            widths[1] = max(
+                widths[1],
+                display_width(&row.mount_point, width_mode) as u16,
+            );
         });
 
         widths
