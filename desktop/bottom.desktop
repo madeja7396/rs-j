@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=bottom
+Version=1.5
+GenericName=System Monitor
+Comment=A customizable cross-platform graphical process/system monitor for the terminal.
+Exec=btm
+Terminal=true
+Type=Application
+Categories=System;ConsoleOnly;Monitor;
+StartupNotify=false
+Icon=bottom-system-monitor

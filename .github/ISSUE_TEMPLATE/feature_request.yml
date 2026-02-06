@@ -1,0 +1,30 @@
+name: Feature request
+description: Got a good idea that hasn't already been suggested?  Mention it here!
+labels: ["feature"]
+body:
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Checklist
+      options:
+        - label: >
+            I've looked through [the documentation](https://bottom.pages.dev/nightly/) and 
+            [existing open issues](https://github.com/ClementTsang/bottom/issues?q=is%3Aopen+is%3Aissue+label%3Afeature)
+            for similar feature requests.
+          required: true
+
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: Describe the feature request
+      description: >
+        Please describe what behaviour you are looking for, the motivation for it, and use cases where this feature
+        would be helpful to both you and others. Try to be clear and concise.
+
+        If you have any ideas to implement this feature as well, feel free to write them down here too.
+      placeholder: |
+        Example:
+        It would be nice to support FreeBSD, as I and others often use similar tools on my FreeBSD-based system.
+        I also noticed that sysinfo has FreeBSD support as a data source.
