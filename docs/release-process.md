@@ -62,6 +62,7 @@ git push origin 0.12.5
 - repository の Actions 設定
 - fork の workflow 実行許可
 - runner/target の matrix 設定（例: macOS ARM/Intel の不一致）
+- reusable workflow の `permissions` 要求（`id-token` / `attestations`）が caller 側で許可されているか
 
 補足:
 - `./scripts/release_prep.sh --skip-clippy` / `--skip-tests` で段階実行も可能
