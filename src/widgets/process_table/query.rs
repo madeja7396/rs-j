@@ -723,6 +723,51 @@ mod tests {
     }
 
     #[test]
+    fn test_nfkc_fullwidth_ascii_matches_halfwidth() {
+        let query = parse_query_no_options("ＡＢＣ").unwrap();
+
+        let process_a = simple_process("ABC");
+        let process_b = simple_process("ＡＢＣＸ");
+        let process_c = simple_process("DEF");
+
+        assert!(query.check(&process_a, false));
+        assert!(query.check(&process_b, false));
+        assert!(!query.check(&process_c, false));
+    }
+
+    #[test]
+    fn test_nfkc_katakana_halfwidth_matches_fullwidth() {
+        let query = parse_query_no_options("ｶﾀｶﾅ").unwrap();
+
+        let process_a = simple_process("カタカナ");
+        let process_b = simple_process("かな");
+
+        assert!(query.check(&process_a, false));
+        assert!(!query.check(&process_b, false));
+    }
+
+    #[test]
+    fn test_ignore_case_with_nfkc() {
+        let query = parse_query(
+            "ＴＥＳＴ",
+            &QueryOptions {
+                whole_word: false,
+                ignore_case: true,
+                use_regex: false,
+            },
+        )
+        .unwrap();
+
+        let process_a = simple_process("test");
+        let process_b = simple_process("TESTING");
+        let process_c = simple_process("nope");
+
+        assert!(query.check(&process_a, false));
+        assert!(query.check(&process_b, false));
+        assert!(!query.check(&process_c, false));
+    }
+
+    #[test]
     fn test_regex_1() {
         let query = parse_query(
             "(a|b)",

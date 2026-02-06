@@ -101,6 +101,7 @@ tui = { version = "0.30.0", package = "ratatui", features = [
     "crossterm",
 ] }
 unicode-ellipsis = "0.3.0"
+unicode-normalization = "0.1.24"
 unicode-segmentation = "1.12.0"
 unicode-width = "0.2.2"
 

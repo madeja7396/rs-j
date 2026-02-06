@@ -1,6 +1,7 @@
 //! Code related to attributes, which should be "searchable" leaf nodes.
 
 use regex::Regex;
+use unicode_normalization::UnicodeNormalization;
 
 use crate::{
     collection::processes::ProcessHarvest,
@@ -11,6 +12,57 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
+pub(super) enum StringMatcher {
+    Regex(Regex),
+    Literal {
+        normalized: String,
+        whole_word: bool,
+        ignore_case: bool,
+    },
+}
+
+impl StringMatcher {
+    fn normalize(value: &str, ignore_case: bool) -> String {
+        let normalized = value.nfkc().collect::<String>();
+        if ignore_case {
+            normalized.to_lowercase()
+        } else {
+            normalized
+        }
+    }
+
+    fn from_query(base: &str, regex_options: &QueryOptions) -> QueryResult<Self> {
+        if regex_options.use_regex {
+            Ok(Self::Regex(new_regex(base, regex_options)?))
+        } else {
+            Ok(Self::Literal {
+                normalized: Self::normalize(base, regex_options.ignore_case),
+                whole_word: regex_options.whole_word,
+                ignore_case: regex_options.ignore_case,
+            })
+        }
+    }
+
+    fn is_match(&self, value: &str) -> bool {
+        match self {
+            StringMatcher::Regex(re) => re.is_match(value),
+            StringMatcher::Literal {
+                normalized,
+                whole_word,
+                ignore_case,
+            } => {
+                let normalized_value = Self::normalize(value, *ignore_case);
+                if *whole_word {
+                    normalized_value == *normalized
+                } else {
+                    normalized_value.contains(normalized)
+                }
+            }
+        }
+    }
+}
+
 /// An attribute (leaf node) for a process.
 #[derive(Debug)]
 pub(super) enum ProcessAttribute {
@@ -18,7 +70,7 @@ pub(super) enum ProcessAttribute {
     /// but it would potentially require handling "empty" queries better. Currently, we just
     /// treat it as a leaf node that always succeeds on matches.
     Empty,
-    Pid(Regex),
+    Pid(StringMatcher),
     CpuPercentage(NumericalQuery),
     MemBytes(NumericalQuery),
     MemPercentage(NumericalQuery),
@@ -27,9 +79,9 @@ pub(super) enum ProcessAttribute {
     TotalRead(NumericalQuery),
     TotalWrite(NumericalQuery),
     /// Note this is an "untagged" attribute (e.g. "btm", "firefox").
-    Name(Regex),
-    State(Regex),
-    User(Regex),
+    Name(StringMatcher),
+    State(StringMatcher),
+    User(StringMatcher),
     Time(TimeQuery),
     #[cfg(unix)]
     Nice(NumericalQuery),
@@ -46,7 +98,7 @@ impl ProcessAttribute {
     pub(super) fn check(&self, process: &ProcessHarvest, is_using_command: bool) -> bool {
         match self {
             ProcessAttribute::Empty => true,
-            ProcessAttribute::Pid(re) => re.is_match(process.pid.to_string().as_str()),
+            ProcessAttribute::Pid(matcher) => matcher.is_match(process.pid.to_string().as_str()),
             ProcessAttribute::CpuPercentage(cmp) => cmp.check(process.cpu_usage_percent),
             ProcessAttribute::MemBytes(cmp) => cmp.check(process.mem_usage as f64),
             ProcessAttribute::MemPercentage(cmp) => cmp.check(process.mem_usage_percent),
@@ -54,15 +106,15 @@ impl ProcessAttribute {
             ProcessAttribute::WritePerSecond(cmp) => cmp.check(process.write_per_sec as f64),
             ProcessAttribute::TotalRead(cmp) => cmp.check(process.total_read as f64),
             ProcessAttribute::TotalWrite(cmp) => cmp.check(process.total_write as f64),
-            ProcessAttribute::Name(re) => re.is_match(if is_using_command {
+            ProcessAttribute::Name(matcher) => matcher.is_match(if is_using_command {
                 process.command.as_str()
             } else {
                 process.name.as_str()
             }),
-            ProcessAttribute::State(re) => re.is_match(process.process_state.0),
-            ProcessAttribute::User(re) => match process.user.as_ref() {
-                Some(user) => re.is_match(user),
-                None => re.is_match("N/A"),
+            ProcessAttribute::State(matcher) => matcher.is_match(process.process_state.0),
+            ProcessAttribute::User(matcher) => match process.user.as_ref() {
+                Some(user) => matcher.is_match(user),
+                None => matcher.is_match("N/A"),
             },
             ProcessAttribute::Time(time) => time.check(process.time),
             // TODO: It's a bit silly for some of these, like nice/priority, where it's casted to an f64.
@@ -85,13 +137,13 @@ pub(super) fn new_string_attribute(
 ) -> QueryResult<ProcessAttribute> {
     match prefix_type {
         PrefixType::Pid | PrefixType::Name | PrefixType::State | PrefixType::User => {
-            let re = new_regex(base, regex_options)?;
+            let matcher = StringMatcher::from_query(base, regex_options)?;
 
             match prefix_type {
-                PrefixType::Pid => Ok(ProcessAttribute::Pid(re)),
-                PrefixType::Name => Ok(ProcessAttribute::Name(re)),
-                PrefixType::State => Ok(ProcessAttribute::State(re)),
-                PrefixType::User => Ok(ProcessAttribute::User(re)),
+                PrefixType::Pid => Ok(ProcessAttribute::Pid(matcher)),
+                PrefixType::Name => Ok(ProcessAttribute::Name(matcher)),
+                PrefixType::State => Ok(ProcessAttribute::State(matcher)),
+                PrefixType::User => Ok(ProcessAttribute::User(matcher)),
                 _ => unreachable!(),
             }
         }
