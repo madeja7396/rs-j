@@ -40,6 +40,9 @@
 - Phase 9 着手:
   - `codecov` workflow を fork 既定で安全側（coverage job skip）に調整
   - `check_workflow_runs.sh` の失敗判定バグを修正
+- Phase 10 着手:
+  - `deployment` workflow に常時実行の初期ジョブを追加し、fork 既定での startup_failure を解消
+  - `RSJ_ENABLE_RELEASE_PIPELINE` 未設定時は明示メッセージで skip 理由を表示
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
@@ -129,3 +132,11 @@
 
 完了条件:
 - `codecov` workflow が fork 既定で安定して完了する
+
+## Phase 10: Deployment 起動安定化
+
+- fork 既定でも deployment workflow がジョブ0件で落ちない構成にする
+- release pipeline 無効時の理由を workflow ログ上で明示する
+
+完了条件:
+- tag push 時の `deployment` が `startup_failure` にならない
