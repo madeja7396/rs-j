@@ -16,6 +16,7 @@
 - `./scripts/setup_dev_env.sh` が実行できる
 - `./scripts/check_env.sh` が成功する
 - `./scripts/release_prep.sh --help` が実行できる
+- `./scripts/check_workflow_runs.sh --help` が実行できる
 - Rust stable + `rustfmt` + `clippy` が使える
 
 ## CI
@@ -23,6 +24,7 @@
 - Linux で workflow が成功
 - Windows で workflow が成功
 - `Cargo.toml` 導入後に `fmt` / `clippy` / `test` が走る
+- `./scripts/check_workflow_runs.sh --wait-secs 900` が成功
 
 ## 品質
 

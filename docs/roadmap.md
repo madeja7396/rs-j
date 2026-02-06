@@ -34,6 +34,9 @@
 - Phase 7 着手:
   - fork 既定で公開系 workflow を安全側に寄せる（docs build-only / deployment skip）
   - `RSJ_ENABLE_PAGES_DEPLOY` / `RSJ_ENABLE_RELEASE_PIPELINE` で公開系 workflow を明示有効化
+- Phase 8 着手:
+  - `scripts/check_workflow_runs.sh` を追加し、push 後の主要 workflow 状態確認を自動化
+  - `README.md` / `docs/release-process.md` / `docs/github-publication-checklist.md` へ導線を追加
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
@@ -107,3 +110,11 @@
 
 完了条件:
 - `docs` / `deployment` の startup failure が解消される
+
+## Phase 8: CI 可視化の自動化
+
+- 指定 SHA の workflow 状態（`ci` / `codecov` / `docs`）をまとめて確認できるようにする
+- 完了まで待機できる CLI を提供し、公開作業の確認漏れを減らす
+
+完了条件:
+- `./scripts/check_workflow_runs.sh --wait-secs 900` が運用手順に組み込まれている

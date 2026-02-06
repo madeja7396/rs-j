@@ -51,6 +51,12 @@ git push origin 0.12.5
 - `deployment` run が起動していること
 - `ci` / `codecov` の状態も確認すること
 
+推奨コマンド:
+
+```bash
+./scripts/check_workflow_runs.sh --wait-secs 900
+```
+
 失敗時の確認ポイント:
 - repository の Actions 設定
 - fork の workflow 実行許可
@@ -59,6 +65,7 @@ git push origin 0.12.5
 補足:
 - `./scripts/release_prep.sh --skip-clippy` / `--skip-tests` で段階実行も可能
 - fork では上記 variables 未設定時、`docs` は build のみ実行し、`deployment` はスキップされる
+- `check_workflow_runs.sh` は既定で `ci,codecov,docs` を確認する（`--required` で変更可能）
 
 ## 5. Release ページ公開
 
