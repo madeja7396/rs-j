@@ -247,6 +247,7 @@ impl Painter {
                 legend_constraints: Some(legend_constraints),
                 marker,
                 scaling,
+                text_width_mode: app_state.app_config_fields.text_width_mode,
             }
             .draw(f, draw_loc, graph_data);
         }

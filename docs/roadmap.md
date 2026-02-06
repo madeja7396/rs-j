@@ -15,6 +15,7 @@
   - テーブルのヘッダー/セル切り詰めに `width_mode` を適用
   - ヘルプダイアログの行幅見積もりと kill ダイアログの名前切り詰めにも適用
   - basic CPU/MEM の PipeGauge ラベル配置と battery タブ幅にも適用
+  - 時系列グラフの軸ラベル/タイトル/凡例レイアウト幅にも `width_mode` を適用
 - Phase 4 着手:
   - regex 未使用時の文字列検索に NFKC 正規化を適用
   - `ignore_case` 有効時は正規化後の大文字小文字差を吸収

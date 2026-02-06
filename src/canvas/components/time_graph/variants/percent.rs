@@ -91,6 +91,7 @@ impl<'a> PercentTimeGraph<'a> {
             legend_constraints: self.legend_constraints,
             marker,
             scaling: ChartScaling::Linear,
+            text_width_mode: self.app_config_fields.text_width_mode,
         }
     }
 }

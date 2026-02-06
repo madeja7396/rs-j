@@ -19,11 +19,13 @@ use tui::{
     text::{Line, Span},
     widgets::{Block, BlockExt, Borders, GraphType, Widget},
 };
-use unicode_width::UnicodeWidthStr;
 
 use crate::{
     app::data::Values,
-    utils::general::{saturating_log2, saturating_log10},
+    utils::{
+        general::{saturating_log2, saturating_log10},
+        text_width::{TextWidthMode, display_width},
+    },
 };
 
 pub const DEFAULT_LEGEND_CONSTRAINTS: (Constraint, Constraint) =
@@ -433,6 +435,8 @@ pub(super) struct TimeChart<'a> {
     marker: Marker,
     /// Whether to scale the values differently.
     scaling: ChartScaling,
+    /// Width calculation mode for labels/titles.
+    text_width_mode: TextWidthMode,
 }
 
 impl<'a> TimeChart<'a> {
@@ -449,6 +453,7 @@ impl<'a> TimeChart<'a> {
             legend_position: Some(LegendPosition::default()),
             marker: Marker::Braille,
             scaling: ChartScaling::default(),
+            text_width_mode: TextWidthMode::Normal,
         }
     }
 
@@ -547,6 +552,24 @@ impl<'a> TimeChart<'a> {
         self
     }
 
+    /// Sets text width mode for chart labels/titles.
+    #[must_use = "method moves the value of self and returns the modified value"]
+    pub fn text_width_mode(mut self, text_width_mode: TextWidthMode) -> TimeChart<'a> {
+        self.text_width_mode = text_width_mode;
+        self
+    }
+
+    fn span_width(&self, span: &Span<'_>) -> u16 {
+        display_width(span.content.as_ref(), self.text_width_mode) as u16
+    }
+
+    fn line_width(&self, line: &Line<'_>) -> u16 {
+        line.spans
+            .iter()
+            .map(|span| display_width(span.content.as_ref(), self.text_width_mode))
+            .sum::<usize>() as u16
+    }
+
     /// Compute the internal layout of the chart given the area. If the area is
     /// too small some elements may be automatically hidden
     fn layout(&self, area: Rect) -> ChartLayout {
@@ -580,14 +603,14 @@ impl<'a> TimeChart<'a> {
         }
 
         if let Some(ref title) = self.x_axis.title {
-            let w = title.width() as u16;
+            let w = self.line_width(title);
             if w < layout.graph_area.width && layout.graph_area.height > 2 {
                 layout.title_x = Some((x + layout.graph_area.width - w, y));
             }
         }
 
         if let Some(ref title) = self.y_axis.title {
-            let w = title.width() as u16;
+            let w = self.line_width(title);
             if w + 1 < layout.graph_area.width && layout.graph_area.height > 2 {
                 layout.title_y = Some((x, area.top()));
             }
@@ -597,7 +620,7 @@ impl<'a> TimeChart<'a> {
             let legends = self
                 .datasets
                 .iter()
-                .filter_map(|d| Some(d.name.as_ref()?.width() as u16));
+                .filter_map(|d| Some(self.line_width(d.name.as_ref()?)));
 
             if let Some(inner_width) = legends.clone().max() {
                 let legend_width = inner_width + 2;
@@ -622,12 +645,12 @@ impl<'a> TimeChart<'a> {
                         layout
                             .title_x
                             .and(self.x_axis.title.as_ref())
-                            .map(|t| t.width() as u16)
+                            .map(|t| self.line_width(t))
                             .unwrap_or_default(),
                         layout
                             .title_y
                             .and(self.y_axis.title.as_ref())
-                            .map(|t| t.width() as u16)
+                            .map(|t| self.line_width(t))
                             .unwrap_or_default(),
                     );
                 }
@@ -641,7 +664,12 @@ impl<'a> TimeChart<'a> {
             .y_axis
             .labels
             .as_ref()
-            .map(|l| l.iter().map(Span::width).max().unwrap_or_default() as u16)
+            .map(|l| {
+                l.iter()
+                    .map(|label| self.span_width(label))
+                    .max()
+                    .unwrap_or_default()
+            })
             .unwrap_or_default();
 
         if let Some(first_x_label) = self
@@ -650,7 +678,7 @@ impl<'a> TimeChart<'a> {
             .as_ref()
             .and_then(|labels| labels.first())
         {
-            let first_label_width = first_x_label.content.width() as u16;
+            let first_label_width = self.span_width(first_x_label);
             let width_left_of_y_axis = match self.x_axis.labels_alignment {
                 Alignment::Left => {
                     // The last character of the label should be below the Y-Axis when it exists,
@@ -687,7 +715,7 @@ impl<'a> TimeChart<'a> {
 
         let label_area = self.first_x_label_area(
             y,
-            first_label.width() as u16,
+            self.span_width(first_label),
             width_between_ticks,
             chart_area,
             graph_area,
@@ -699,7 +727,7 @@ impl<'a> TimeChart<'a> {
             Alignment::Right => Alignment::Left,
         };
 
-        Self::render_label(buf, first_label, label_area, label_alignment);
+        self.render_label(buf, first_label, label_area, label_alignment);
 
         for (i, label) in labels[1..labels.len() - 1].iter().enumerate() {
             // We add 1 to x (and width-1 below) to leave at least one space before each
@@ -707,13 +735,13 @@ impl<'a> TimeChart<'a> {
             let x = graph_area.left() + (i + 1) as u16 * width_between_ticks + 1;
             let label_area = Rect::new(x, y, width_between_ticks.saturating_sub(1), 1);
 
-            Self::render_label(buf, label, label_area, Alignment::Center);
+            self.render_label(buf, label, label_area, Alignment::Center);
         }
 
         let x = graph_area.right() - width_between_ticks;
         let label_area = Rect::new(x, y, width_between_ticks, 1);
         // The last label should be aligned Right to be at the edge of the graph area
-        Self::render_label(buf, last_label, label_area, Alignment::Right);
+        self.render_label(buf, last_label, label_area, Alignment::Right);
     }
 
     fn first_x_label_area(
@@ -735,8 +763,10 @@ impl<'a> TimeChart<'a> {
         Rect::new(min_x, y, max_x - min_x, 1)
     }
 
-    fn render_label(buf: &mut Buffer, label: &Span<'_>, label_area: Rect, alignment: Alignment) {
-        let label_width = label.width() as u16;
+    fn render_label(
+        &self, buf: &mut Buffer, label: &Span<'_>, label_area: Rect, alignment: Alignment,
+    ) {
+        let label_width = self.span_width(label);
         let bounded_label_width = label_area.width.min(label_width);
 
         let x = match alignment {
@@ -768,7 +798,7 @@ impl<'a> TimeChart<'a> {
                     (graph_area.left() - chart_area.left()).saturating_sub(1),
                     1,
                 );
-                Self::render_label(buf, label, label_area, self.y_axis.labels_alignment);
+                self.render_label(buf, label, label_area, self.y_axis.labels_alignment);
             }
         }
     }
@@ -846,7 +876,7 @@ impl Widget for TimeChart<'_> {
                 let width = graph_area
                     .right()
                     .saturating_sub(x)
-                    .min(title.width() as u16);
+                    .min(self.line_width(title));
                 buf.set_style(
                     Rect {
                         x,
@@ -865,7 +895,7 @@ impl Widget for TimeChart<'_> {
                 let width = graph_area
                     .right()
                     .saturating_sub(x)
-                    .min(title.width() as u16);
+                    .min(self.line_width(title));
                 buf.set_style(
                     Rect {
                         x,
@@ -1141,6 +1171,30 @@ mod tests {
         let layout = widget.layout(buffer.area);
 
         assert!(layout.legend_area.is_none());
+    }
+
+    #[test]
+    fn cjk_width_mode_expands_legend_width_for_ambiguous_chars() {
+        let area = Rect::new(0, 0, 40, 10);
+
+        let normal_layout = TimeChart::new(vec![Dataset::default().name("···")])
+            .hidden_legend_constraints((100.into(), 100.into()))
+            .layout(area);
+        let cjk_layout = TimeChart::new(vec![Dataset::default().name("···")])
+            .hidden_legend_constraints((100.into(), 100.into()))
+            .text_width_mode(TextWidthMode::Cjk)
+            .layout(area);
+
+        let normal_width = normal_layout
+            .legend_area
+            .expect("legend should be visible in normal width mode")
+            .width;
+        let cjk_width = cjk_layout
+            .legend_area
+            .expect("legend should be visible in cjk width mode")
+            .width;
+
+        assert!(cjk_width > normal_width);
     }
 
     #[test]

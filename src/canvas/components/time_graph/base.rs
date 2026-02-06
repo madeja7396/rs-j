@@ -13,6 +13,7 @@ use tui::{
 use crate::{
     app::data::Values,
     canvas::{components::time_graph::*, drawing_utils::widget_block},
+    utils::text_width::TextWidthMode,
 };
 
 /// Represents the data required by the [`TimeGraph`].
@@ -94,6 +95,9 @@ pub struct TimeGraph<'a> {
 
     /// The chart scaling.
     pub scaling: ChartScaling,
+
+    /// Width calculation mode for labels/titles.
+    pub text_width_mode: TextWidthMode,
 }
 
 impl TimeGraph<'_> {
@@ -167,6 +171,7 @@ impl TimeGraph<'_> {
                 .x_axis(x_axis)
                 .y_axis(y_axis)
                 .marker(self.marker)
+                .text_width_mode(self.text_width_mode)
                 .legend_style(self.graph_style)
                 .legend_position(self.legend_position)
                 .hidden_legend_constraints(
@@ -216,7 +221,7 @@ mod test {
     };
 
     use super::{AxisBound, ChartScaling, TimeGraph};
-    use crate::canvas::components::time_graph::Axis;
+    use crate::{canvas::components::time_graph::Axis, utils::text_width::TextWidthMode};
 
     const Y_LABELS: [Cow<'static, str>; 3] = [
         Cow::Borrowed("0%"),
@@ -241,6 +246,7 @@ mod test {
             legend_constraints: None,
             marker: Marker::Braille,
             scaling: ChartScaling::Linear,
+            text_width_mode: TextWidthMode::Normal,
         }
     }
 
