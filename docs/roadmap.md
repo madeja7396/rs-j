@@ -24,8 +24,11 @@
   - `ignore_case` 有効時は正規化後の大文字小文字差を吸収
   - 全角/半角・半角カナ揺れの回帰テストを追加
   - 全角の構文トークン（`AND`/`OR`/括弧/接頭辞）も NFKC 経由で解釈
+- Phase 5 着手:
+  - `README.md` に実装ハイライト・upstream/ライセンス情報・実行例を追記
+  - `docs/release-notes.md` に初回公開向けリリースノート草案を追加
 - 未完了:
-  - 公開向けの README / リリースノート整備（Phase 5）
+  - GitHub Release のタグ作成と公開（Phase 5）
 
 ## Phase 0: リポジトリ初期化
 
