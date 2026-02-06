@@ -62,6 +62,7 @@ impl Painter {
 
                 f.render_widget(
                     PipeGauge::default()
+                        .width_mode(app_state.app_config_fields.text_width_mode)
                         .gauge_style(style)
                         .label_style(style)
                         .inner_label(inner)
@@ -129,6 +130,7 @@ impl Painter {
                     for ((start_label, inner_label, ratio, style), row) in chunk.zip(rows.iter()) {
                         f.render_widget(
                             PipeGauge::default()
+                                .width_mode(app_state.app_config_fields.text_width_mode)
                                 .gauge_style(style)
                                 .label_style(style)
                                 .inner_label(inner_label)

@@ -6,13 +6,13 @@ use tui::{
     text::{Line, Span},
     widgets::{Cell, Paragraph, Row, Table, Tabs},
 };
-use unicode_width::UnicodeWidthStr;
 
 use crate::{
     app::App,
     canvas::{Painter, drawing_utils::widget_block},
     collection::batteries::BatteryState,
     constants::*,
+    utils::text_width::display_width,
 };
 
 /// Calculate how many bars are to be drawn within basic mode's components.
@@ -102,7 +102,10 @@ impl Painter {
                     let mut tab_click_locs: Vec<((u16, u16), (u16, u16))> = vec![];
                     for battery in battery_names {
                         // +1 because there's a space after the tab label.
-                        let width = UnicodeWidthStr::width(battery.as_str()) as u16;
+                        let width = display_width(
+                            battery.as_str(),
+                            app_state.app_config_fields.text_width_mode,
+                        ) as u16;
                         tab_click_locs
                             .push(((current_x, current_y), (current_x + width, current_y)));
 

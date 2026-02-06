@@ -74,6 +74,7 @@ impl Painter {
 
         draw_widgets.push(
             PipeGauge::default()
+                .width_mode(app_state.app_config_fields.text_width_mode)
                 .ratio(ram_percentage / 100.0)
                 .start_label("RAM")
                 .inner_label(ram_label)
@@ -87,6 +88,7 @@ impl Painter {
 
             draw_widgets.push(
                 PipeGauge::default()
+                    .width_mode(app_state.app_config_fields.text_width_mode)
                     .ratio(swap_percentage / 100.0)
                     .start_label("SWP")
                     .inner_label(swap_label)
@@ -104,6 +106,7 @@ impl Painter {
 
                 draw_widgets.push(
                     PipeGauge::default()
+                        .width_mode(app_state.app_config_fields.text_width_mode)
                         .ratio(cache_percentage / 100.0)
                         .start_label("CHE")
                         .inner_label(cache_fraction_label)
@@ -122,6 +125,7 @@ impl Painter {
 
                 draw_widgets.push(
                     PipeGauge::default()
+                        .width_mode(app_state.app_config_fields.text_width_mode)
                         .ratio(arc_percentage / 100.0)
                         .start_label("ARC")
                         .inner_label(arc_fraction_label)
@@ -153,6 +157,7 @@ impl Painter {
 
                 draw_widgets.push(
                     PipeGauge::default()
+                        .width_mode(app_state.app_config_fields.text_width_mode)
                         .ratio(percentage / 100.0)
                         .start_label("GPU")
                         .inner_label(label)
