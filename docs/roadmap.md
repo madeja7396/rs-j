@@ -8,9 +8,14 @@
   - Windows cmd/PowerShell 風環境を検出して `dot_marker` を自動有効化
   - `--dot_marker` と `config.flags.dot_marker` は自動判定より優先
   - WSL 検出時に起動メッセージで既知制約を通知
+- Phase 3 着手:
+  - `width_mode`（`normal` / `cjk` / `unicode-approx`）を CLI と config に追加
+  - プロセス検索クエリの幅計算に `width_mode` を適用
+  - テーブルのヘッダー/セル切り詰めに `width_mode` を適用
 - 未完了:
   - ASCII 寄り描画プロファイルの導入
   - 端末判定結果をヘルプ/ステータスから参照可能にする
+  - grapheme cluster 前提の幅モードを全ウィジェットへ展開
 
 ## Phase 0: リポジトリ初期化
 

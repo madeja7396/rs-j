@@ -34,7 +34,9 @@ use crate::{
     app::{filter::Filter, layout_manager::*, *},
     canvas::components::time_graph::LegendPosition,
     constants::*,
-    utils::{data_units::DataUnit, terminal::should_auto_enable_dot_marker},
+    utils::{
+        data_units::DataUnit, terminal::should_auto_enable_dot_marker, text_width::TextWidthMode,
+    },
     widgets::*,
 };
 
@@ -333,6 +335,7 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         retention_ms,
         dedicated_average_row: get_dedicated_avg_row(config),
         default_tree_collapse: is_default_tree_collapsed,
+        text_width_mode: get_text_width_mode(args, config)?,
         #[cfg(feature = "zfs")]
         free_arc,
     };
@@ -731,6 +734,20 @@ fn get_temperature(args: &BottomArgs, config: &Config) -> OptionResult<Temperatu
     Ok(TemperatureType::Celsius)
 }
 
+fn get_text_width_mode(args: &BottomArgs, config: &Config) -> OptionResult<TextWidthMode> {
+    if let Some(mode) = &args.general.width_mode {
+        parse_arg_value!(TextWidthMode::from_str(mode), "width_mode")
+    } else if let Some(flags) = &config.flags {
+        if let Some(mode) = &flags.width_mode {
+            parse_config_value!(TextWidthMode::from_str(mode), "width_mode")
+        } else {
+            Ok(TextWidthMode::default())
+        }
+    } else {
+        Ok(TextWidthMode::default())
+    }
+}
+
 /// Yes, this function gets whether to show average CPU (true) or not (false).
 fn get_show_average_cpu(args: &BottomArgs, config: &Config) -> bool {
     if args.cpu.hide_avg_cpu {
@@ -1068,8 +1085,8 @@ mod test {
         app::App,
         args::BottomArgs,
         options::{
-            config::flags::GeneralConfig, get_default_time_value, get_retention, get_update_rate,
-            get_use_dot_marker, try_parse_ms,
+            config::flags::GeneralConfig, get_default_time_value, get_retention,
+            get_text_width_mode, get_update_rate, get_use_dot_marker, try_parse_ms,
         },
     };
 
@@ -1261,6 +1278,37 @@ mod test {
             ..Default::default()
         });
         assert!(!get_use_dot_marker(&args, &config));
+    }
+
+    #[test]
+    fn width_mode_cli_overrides_config() {
+        let args = BottomArgs::parse_from(["btm", "--width_mode", "cjk"]);
+
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            width_mode: Some("normal".to_string()),
+            ..Default::default()
+        });
+
+        assert_eq!(
+            get_text_width_mode(&args, &config),
+            Ok(crate::utils::text_width::TextWidthMode::Cjk)
+        );
+    }
+
+    #[test]
+    fn width_mode_config_parses() {
+        let args = BottomArgs::parse_from(["btm"]);
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            width_mode: Some("unicode-approx".to_string()),
+            ..Default::default()
+        });
+
+        assert_eq!(
+            get_text_width_mode(&args, &config),
+            Ok(crate::utils::text_width::TextWidthMode::UnicodeApprox)
+        );
     }
 
     fn create_app(args: BottomArgs) -> App {

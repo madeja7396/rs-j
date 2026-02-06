@@ -17,6 +17,7 @@ mod utils {
     pub(crate) mod process_killer;
     pub(crate) mod strings;
     pub(crate) mod terminal;
+    pub(crate) mod text_width;
 }
 pub(crate) mod canvas;
 pub(crate) mod collection;

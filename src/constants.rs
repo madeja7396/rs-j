@@ -262,6 +262,10 @@ pub(crate) const CONFIG_TEXT: &str = r#"# This is a default config file for bott
 # If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts.
 #dot_marker = false
 
+# Width calculation mode for text-heavy widgets.
+# One of: "normal", "cjk", "unicode-approx"
+#width_mode = "normal"
+
 # The update rate of the application.
 #rate = "1s"
 

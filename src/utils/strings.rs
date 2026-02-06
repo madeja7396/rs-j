@@ -1,12 +1,15 @@
 use tui::text::Text;
-use unicode_ellipsis::truncate_str;
+
+use super::text_width::{TextWidthMode, truncate_to_width};
 
 /// Truncates text if it is too long, and adds an ellipsis at the end if needed.
 ///
 /// TODO: Maybe cache results from this function for some cases? e.g. columns
 #[inline]
-pub fn truncate_to_text<'a, U: Into<usize>>(content: &str, width: U) -> Text<'a> {
-    Text::raw(truncate_str(content, width.into()).to_string())
+pub fn truncate_to_text<'a, U: Into<usize>>(
+    content: &str, width: U, width_mode: TextWidthMode,
+) -> Text<'a> {
+    Text::raw(truncate_to_width(content, width.into(), width_mode))
 }
 
 /// Checks that the first string is equal to any of the other ones in a ASCII

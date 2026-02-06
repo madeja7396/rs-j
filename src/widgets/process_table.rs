@@ -25,6 +25,7 @@ use crate::{
     },
     collection::processes::{Pid, ProcessHarvest},
     options::config::style::Styles,
+    utils::text_width::TextWidthMode,
     widgets::query::QueryOptions,
 };
 
@@ -1081,7 +1082,7 @@ impl ProcWidgetState {
     /// Update the current search query.
     ///
     /// TODO: Maybe debounce this.
-    pub fn update_query(&mut self) {
+    pub fn update_query(&mut self, width_mode: TextWidthMode) {
         if self
             .proc_search
             .search_state
@@ -1113,7 +1114,7 @@ impl ProcWidgetState {
         self.table.state.current_index = 0;
 
         // Update the internal sizes too.
-        self.proc_search.search_state.update_sizes();
+        self.proc_search.search_state.update_sizes(width_mode);
 
         self.force_data_update();
     }

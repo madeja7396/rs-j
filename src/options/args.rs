@@ -229,6 +229,17 @@ pub struct GeneralArgs {
     pub dot_marker: bool,
 
     #[arg(
+        long,
+        value_name = "MODE",
+        help = "Sets text width calculation mode.",
+        long_help = "Sets text width calculation mode. \
+                One of: normal, cjk, unicode-approx.",
+        value_parser = ["normal", "cjk", "unicode-approx"],
+        alias = "width-mode"
+    )]
+    pub width_mode: Option<String>,
+
+    #[arg(
         short = 'e',
         long,
         action = ArgAction::SetTrue,

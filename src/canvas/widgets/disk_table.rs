@@ -26,6 +26,7 @@ impl Painter {
                 force_redraw: app_state.is_force_redraw,
                 recalculate_column_widths,
                 selection_state: SelectionState::new(app_state.is_expanded, is_on_widget),
+                text_width_mode: app_state.app_config_fields.text_width_mode,
             };
 
             disk_widget_state.table.draw(

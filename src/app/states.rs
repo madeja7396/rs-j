@@ -2,12 +2,12 @@ use std::ops::Range;
 
 use indexmap::IndexMap;
 use rustc_hash::FxHashMap as HashMap;
-use unicode_ellipsis::grapheme_width;
 use unicode_segmentation::{GraphemeCursor, GraphemeIncomplete, UnicodeSegmentation};
 
 use crate::{
     app::layout_manager::BottomWidgetType,
     constants,
+    utils::text_width::{TextWidthMode, grapheme_display_width},
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
         ProcWidgetState, TempWidgetState, query::ProcessQuery,
@@ -222,13 +222,13 @@ impl AppSearchState {
         }
     }
 
-    pub(crate) fn update_sizes(&mut self) {
+    pub(crate) fn update_sizes(&mut self, width_mode: TextWidthMode) {
         self.size_mappings.clear();
         let mut curr_offset = 0;
         for (index, grapheme) in
             UnicodeSegmentation::grapheme_indices(self.current_search_query.as_str(), true)
         {
-            let width = grapheme_width(grapheme);
+            let width = grapheme_display_width(grapheme, width_mode);
             let end = curr_offset + width;
 
             self.size_mappings.insert(index, curr_offset..end);
@@ -382,7 +382,7 @@ mod test {
         let mut state = AppSearchState::default();
         state.current_search_query = "Hi, 你好! 🇦🇶".to_string();
         state.grapheme_cursor = GraphemeCursor::new(0, state.current_search_query.len(), true);
-        state.update_sizes();
+        state.update_sizes(TextWidthMode::Normal);
 
         // Moving right.
         state.get_start_position(4, false);

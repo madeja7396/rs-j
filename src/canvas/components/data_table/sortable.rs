@@ -8,7 +8,7 @@ use super::{
     ColumnHeader, ColumnWidthBounds, DataTable, DataTableColumn, DataTableProps, DataTableState,
     DataTableStyling, DataToCell,
 };
-use crate::utils::strings::truncate_to_text;
+use crate::utils::{strings::truncate_to_text, text_width::TextWidthMode};
 
 /// Denotes the sort order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -58,7 +58,9 @@ pub struct Sortable {
 /// and therefore only [`Unsortable`] and [`Sortable`] can implement it.
 pub trait SortType: private::Sealed {
     /// Constructs the table header.
-    fn build_header<H, C>(&self, columns: &[C], widths: &[NonZeroU16]) -> Row<'_>
+    fn build_header<H, C>(
+        &self, columns: &[C], widths: &[NonZeroU16], width_mode: TextWidthMode,
+    ) -> Row<'_>
     where
         H: ColumnHeader,
         C: DataTableColumn<H>,
@@ -67,7 +69,7 @@ pub trait SortType: private::Sealed {
             columns
                 .iter()
                 .zip(widths)
-                .map(|(c, &width)| truncate_to_text(&c.header(), width.get())),
+                .map(|(c, &width)| truncate_to_text(&c.header(), width.get(), width_mode)),
         )
     }
 }
@@ -84,7 +86,9 @@ mod private {
 impl SortType for Unsortable {}
 
 impl SortType for Sortable {
-    fn build_header<H, C>(&self, columns: &[C], widths: &[NonZeroU16]) -> Row<'_>
+    fn build_header<H, C>(
+        &self, columns: &[C], widths: &[NonZeroU16], width_mode: TextWidthMode,
+    ) -> Row<'_>
     where
         H: ColumnHeader,
         C: DataTableColumn<H>,
@@ -107,9 +111,13 @@ impl SortType for Sortable {
                         // since I almost always bind to at least the header
                         // size... TODO: Or should we instead truncate but
                         // ALWAYS leave the arrow at the end?
-                        truncate_to_text(&concat_string!(c.header(), arrow), width.get())
+                        truncate_to_text(
+                            &concat_string!(c.header(), arrow),
+                            width.get(),
+                            width_mode,
+                        )
                     } else {
-                        truncate_to_text(&c.header(), width.get())
+                        truncate_to_text(&c.header(), width.get(), width_mode)
                     }
                 }),
         )

@@ -19,7 +19,7 @@ use crate::{
     app::layout_manager::BottomWidget,
     canvas::{Painter, drawing_utils::widget_block},
     constants::TABLE_GAP_HEIGHT_LIMIT,
-    utils::strings::truncate_to_text,
+    utils::{strings::truncate_to_text, text_width::TextWidthMode},
 };
 
 pub enum SelectionState {
@@ -46,6 +46,7 @@ pub struct DrawInfo {
     pub force_redraw: bool,
     pub recalculate_column_widths: bool,
     pub selection_state: SelectionState,
+    pub text_width_mode: TextWidthMode,
 }
 
 impl DrawInfo {
@@ -218,7 +219,11 @@ where
                                 .zip(&self.state.calculated_widths)
                                 .filter_map(|(column, &width)| {
                                     data_row.to_cell_text(column.inner(), width).map(|content| {
-                                        let content = truncate_to_text(&content, width.get());
+                                        let content = truncate_to_text(
+                                            &content,
+                                            width.get(),
+                                            draw_info.text_width_mode,
+                                        );
 
                                         if let Some(style) =
                                             data_row.style_cell(column.inner(), painter)
@@ -237,7 +242,11 @@ where
 
                 let headers = self
                     .sort_type
-                    .build_header(columns, &self.state.calculated_widths)
+                    .build_header(
+                        columns,
+                        &self.state.calculated_widths,
+                        draw_info.text_width_mode,
+                    )
                     .style(self.styling.header_style)
                     .bottom_margin(table_gap);
 

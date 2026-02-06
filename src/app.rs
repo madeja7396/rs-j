@@ -18,7 +18,7 @@ use crate::{
         components::time_graph::LegendPosition, dialogs::process_kill_dialog::ProcessKillDialog,
     },
     constants,
-    utils::data_units::DataUnit,
+    utils::{data_units::DataUnit, text_width::TextWidthMode},
     widgets::{ProcWidgetColumn, ProcWidgetMode, TreeCollapsed},
 };
 
@@ -71,6 +71,7 @@ pub struct AppConfigFields {
     pub retention_ms: u64,
     pub dedicated_average_row: bool,
     pub default_tree_collapse: bool,
+    pub text_width_mode: TextWidthMode,
 }
 
 /// For filtering out information
@@ -384,7 +385,7 @@ impl App {
         {
             if is_in_search_widget && proc_widget_state.is_search_enabled() {
                 proc_widget_state.proc_search.search_toggle_ignore_case();
-                proc_widget_state.update_query();
+                proc_widget_state.update_query(self.app_config_fields.text_width_mode);
             }
         }
     }
@@ -399,7 +400,7 @@ impl App {
         {
             if is_in_search_widget && proc_widget_state.is_search_enabled() {
                 proc_widget_state.proc_search.search_toggle_whole_word();
-                proc_widget_state.update_query();
+                proc_widget_state.update_query(self.app_config_fields.text_width_mode);
             }
         }
     }
@@ -414,7 +415,7 @@ impl App {
         {
             if is_in_search_widget && proc_widget_state.is_search_enabled() {
                 proc_widget_state.proc_search.search_toggle_regex();
-                proc_widget_state.update_query();
+                proc_widget_state.update_query(self.app_config_fields.text_width_mode);
             }
         }
     }
@@ -520,7 +521,7 @@ impl App {
                                 true,
                             );
 
-                        proc_widget_state.update_query();
+                        proc_widget_state.update_query(self.app_config_fields.text_width_mode);
                     }
                 }
             }
@@ -568,7 +569,7 @@ impl App {
                     proc_widget_state.proc_search.search_state.cursor_direction =
                         CursorDirection::Left;
 
-                    proc_widget_state.update_query();
+                    proc_widget_state.update_query(self.app_config_fields.text_width_mode);
                 }
             }
         }
@@ -924,7 +925,7 @@ impl App {
 
                 proc_widget_state.proc_search.search_state.cursor_direction = CursorDirection::Left;
 
-                proc_widget_state.update_query();
+                proc_widget_state.update_query(self.app_config_fields.text_width_mode);
             }
         }
     }
@@ -976,7 +977,7 @@ impl App {
                             );
                         proc_widget_state.search_walk_forward();
 
-                        proc_widget_state.update_query();
+                        proc_widget_state.update_query(self.app_config_fields.text_width_mode);
                         proc_widget_state.proc_search.search_state.cursor_direction =
                             CursorDirection::Right;
 
@@ -2639,7 +2640,7 @@ impl App {
                     proc_widget_state.search_walk_forward();
                 }
 
-                proc_widget_state.update_query();
+                proc_widget_state.update_query(self.app_config_fields.text_width_mode);
                 proc_widget_state.proc_search.search_state.cursor_direction =
                     CursorDirection::Right;
             }
