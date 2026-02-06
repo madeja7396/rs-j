@@ -125,13 +125,13 @@ impl Widget for PipeGauge<'_> {
             let inner_label_width = self
                 .inner_label
                 .as_ref()
-                .map(&line_width)
+                .map(line_width)
                 .unwrap_or_default();
 
             let start_label_width = self
                 .start_label
                 .as_ref()
-                .map(&line_width)
+                .map(line_width)
                 .unwrap_or_default();
 
             match self.hide_parts {
@@ -148,7 +148,7 @@ impl Widget for PipeGauge<'_> {
                     return;
                 }
                 LabelLimit::Auto(_)
-                    if gauge_area.width < (inner_label_width + start_label_width + 1) as u16 =>
+                    if gauge_area.width < (inner_label_width + start_label_width + 1) =>
                 {
                     let inner_label = self.inner_label.unwrap_or_else(|| Line::from(""));
                     let _ = buf.set_line(

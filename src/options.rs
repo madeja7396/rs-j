@@ -1277,11 +1277,13 @@ mod test {
     fn dot_marker_cli_overrides_config() {
         let args = BottomArgs::parse_from(["btm", "--dot_marker"]);
 
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            dot_marker: Some(false),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                dot_marker: Some(false),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
 
         assert!(get_use_dot_marker(&args, &config));
     }
@@ -1290,11 +1292,13 @@ mod test {
     fn dot_marker_config_can_enable_or_disable() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            dot_marker: Some(true),
+        let mut config = Config {
+            flags: Some(GeneralConfig {
+                dot_marker: Some(true),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         assert!(get_use_dot_marker(&args, &config));
 
         config.flags = Some(GeneralConfig {
@@ -1308,11 +1312,13 @@ mod test {
     fn safe_terminal_cli_overrides_config() {
         let args = BottomArgs::parse_from(["btm", "--safe_terminal"]);
 
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            safe_terminal: Some(false),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                safe_terminal: Some(false),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
 
         assert!(get_safe_terminal_mode(&args, &config));
     }
@@ -1321,11 +1327,13 @@ mod test {
     fn safe_terminal_config_can_enable_or_disable() {
         let args = BottomArgs::parse_from(["btm"]);
 
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            safe_terminal: Some(true),
+        let mut config = Config {
+            flags: Some(GeneralConfig {
+                safe_terminal: Some(true),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         assert!(get_safe_terminal_mode(&args, &config));
 
         config.flags = Some(GeneralConfig {
@@ -1339,11 +1347,13 @@ mod test {
     fn width_mode_cli_overrides_config() {
         let args = BottomArgs::parse_from(["btm", "--width_mode", "cjk"]);
 
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            width_mode: Some("normal".to_string()),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                width_mode: Some("normal".to_string()),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
 
         assert_eq!(
             get_text_width_mode(&args, &config),
@@ -1354,11 +1364,13 @@ mod test {
     #[test]
     fn width_mode_config_parses() {
         let args = BottomArgs::parse_from(["btm"]);
-        let mut config = Config::default();
-        config.flags = Some(GeneralConfig {
-            width_mode: Some("unicode-approx".to_string()),
+        let config = Config {
+            flags: Some(GeneralConfig {
+                width_mode: Some("unicode-approx".to_string()),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
 
         assert_eq!(
             get_text_width_mode(&args, &config),
