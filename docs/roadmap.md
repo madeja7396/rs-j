@@ -37,6 +37,9 @@
 - Phase 8 着手:
   - `scripts/check_workflow_runs.sh` を追加し、push 後の主要 workflow 状態確認を自動化
   - `README.md` / `docs/release-process.md` / `docs/github-publication-checklist.md` へ導線を追加
+- Phase 9 着手:
+  - `codecov` workflow を fork 既定で安全側（coverage job skip）に調整
+  - `check_workflow_runs.sh` の失敗判定バグを修正
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
@@ -118,3 +121,11 @@
 
 完了条件:
 - `./scripts/check_workflow_runs.sh --wait-secs 900` が運用手順に組み込まれている
+
+## Phase 9: Codecov 安定化
+
+- fork 既定で codecov 失敗がリリース判定を塞がない構成にする
+- workflow 状態監視スクリプトの失敗判定を正しく機能させる
+
+完了条件:
+- `codecov` workflow が fork 既定で安定して完了する

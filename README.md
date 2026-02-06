@@ -76,5 +76,6 @@ git merge upstream/main
 - 公開を有効化する場合は Repository variables を設定:
   - `RSJ_ENABLE_PAGES_DEPLOY=1`
   - `RSJ_ENABLE_RELEASE_PIPELINE=1`
+  - `RSJ_ENABLE_CODECOV=1`
 - push 後の主要 workflow 確認:
   - `./scripts/check_workflow_runs.sh --wait-secs 900`

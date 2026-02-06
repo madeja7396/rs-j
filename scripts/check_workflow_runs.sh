@@ -198,9 +198,10 @@ while true; do
     echo
     echo "All required workflows completed successfully."
     exit 0
+  else
+    rc=$?
   fi
 
-  rc=$?
   if [[ "$rc" -eq 10 ]]; then
     echo
     echo "One or more required workflows failed."

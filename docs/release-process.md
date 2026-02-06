@@ -25,6 +25,7 @@ GitHub Actions の公開系ジョブを使う場合:
 - Repository variables:
   - `RSJ_ENABLE_PAGES_DEPLOY=1`（docs / gh-pages 公開を有効化）
   - `RSJ_ENABLE_RELEASE_PIPELINE=1`（tag push で deployment を有効化）
+  - `RSJ_ENABLE_CODECOV=1`（codecov の coverage ジョブを有効化）
 - Repository settings:
   - Actions -> General -> Workflow permissions を `Read and write permissions` に設定
 
@@ -64,7 +65,7 @@ git push origin 0.12.5
 
 補足:
 - `./scripts/release_prep.sh --skip-clippy` / `--skip-tests` で段階実行も可能
-- fork では上記 variables 未設定時、`docs` は build のみ実行し、`deployment` はスキップされる
+- fork では上記 variables 未設定時、`docs` は build のみ実行し、`deployment` / `codecov coverage` はスキップされる
 - `check_workflow_runs.sh` は既定で `ci,codecov,docs` を確認する（`--required` で変更可能）
 
 ## 5. Release ページ公開
