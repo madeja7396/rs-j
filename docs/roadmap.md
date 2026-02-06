@@ -13,6 +13,7 @@
   - `width_mode`（`normal` / `cjk` / `unicode-approx`）を CLI と config に追加
   - プロセス検索クエリの幅計算に `width_mode` を適用
   - テーブルのヘッダー/セル切り詰めに `width_mode` を適用
+  - ヘルプダイアログの行幅見積もりと kill ダイアログの名前切り詰めにも適用
 - Phase 4 着手:
   - regex 未使用時の文字列検索に NFKC 正規化を適用
   - `ignore_case` 有効時は正規化後の大文字小文字差を吸収

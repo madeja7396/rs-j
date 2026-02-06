@@ -200,9 +200,12 @@ impl Painter {
                     ])
                     .areas::<3>(vertical_dialog_chunk)[1];
 
-                app_state
-                    .process_kill_dialog
-                    .draw(f, dialog_draw_area, &self.styles);
+                app_state.process_kill_dialog.draw(
+                    f,
+                    dialog_draw_area,
+                    &self.styles,
+                    app_state.app_config_fields.text_width_mode,
+                );
             } else if app_state.is_expanded {
                 if let Some(frozen_draw_loc) = frozen_draw_loc {
                     self.draw_frozen_indicator(f, frozen_draw_loc);

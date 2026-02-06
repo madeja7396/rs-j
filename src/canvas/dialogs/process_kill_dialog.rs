@@ -13,7 +13,10 @@ use tui::{
 };
 
 use crate::{
-    canvas::drawing_utils::dialog_block, collection::processes::Pid, options::config::style::Styles,
+    canvas::drawing_utils::dialog_block,
+    collection::processes::Pid,
+    options::config::style::Styles,
+    utils::text_width::{TextWidthMode, truncate_to_width},
 };
 
 // Configure signal text based on the target OS.
@@ -624,7 +627,8 @@ impl ProcessKillDialog {
 
     #[inline]
     fn draw_selecting(
-        f: &mut Frame<'_>, draw_area: Rect, styles: &Styles, state: &mut ProcessKillSelectingInner,
+        f: &mut Frame<'_>, draw_area: Rect, styles: &Styles, width_mode: TextWidthMode,
+        state: &mut ProcessKillSelectingInner,
     ) {
         let ProcessKillSelectingInner {
             process_name,
@@ -639,7 +643,7 @@ impl ProcessKillDialog {
 
             if let Some(first_pid) = pids.first() {
                 let truncated_process_name =
-                    unicode_ellipsis::truncate_str(process_name, MAX_PROCESS_NAME_WIDTH);
+                    truncate_to_width(process_name, MAX_PROCESS_NAME_WIDTH, width_mode);
 
                 let text = if pids.len() > 1 {
                     Line::from(format!(
@@ -836,7 +840,9 @@ impl ProcessKillDialog {
     }
 
     /// Draw the [`ProcessKillDialog`].
-    pub fn draw(&mut self, f: &mut Frame<'_>, draw_area: Rect, styles: &Styles) {
+    pub fn draw(
+        &mut self, f: &mut Frame<'_>, draw_area: Rect, styles: &Styles, width_mode: TextWidthMode,
+    ) {
         // The idea is:
         // - Use as big of a dialog box as needed (within the maximal draw loc)
         //  - So the non-button ones are going to be smaller... probably
@@ -854,7 +860,7 @@ impl ProcessKillDialog {
             ProcessKillDialogState::NotEnabled => {}
             ProcessKillDialogState::Selecting(state) => {
                 // Draw a text box. If buttons are yes/no, fit it, otherwise, use max space.
-                Self::draw_selecting(f, draw_area, styles, state);
+                Self::draw_selecting(f, draw_area, styles, width_mode, state);
             }
             ProcessKillDialogState::Error {
                 process_name,

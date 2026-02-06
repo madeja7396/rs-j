@@ -6,12 +6,12 @@ use tui::{
     text::{Line, Span},
     widgets::{Paragraph, Wrap},
 };
-use unicode_width::UnicodeWidthStr;
 
 use crate::{
     app::App,
     canvas::{Painter, drawing_utils::dialog_block},
     constants::{self, HELP_TEXT},
+    utils::text_width::display_width,
 };
 
 // TODO: [REFACTOR] Make generic dialog boxes to build off of instead?
@@ -66,14 +66,22 @@ impl Painter {
 
                     if itx == 0 {
                         section.iter().for_each(|text_line| {
-                            buffer += UnicodeWidthStr::width(*text_line).saturating_sub(1) as u16
+                            buffer += display_width(
+                                text_line,
+                                app_state.app_config_fields.text_width_mode,
+                            )
+                            .saturating_sub(1) as u16
                                 / paragraph_width;
                         });
 
                         app_state.help_dialog_state.index_shortcuts[itx] = 0;
                     } else {
                         section.iter().for_each(|text_line| {
-                            buffer += UnicodeWidthStr::width(*text_line).saturating_sub(1) as u16
+                            buffer += display_width(
+                                text_line,
+                                app_state.app_config_fields.text_width_mode,
+                            )
+                            .saturating_sub(1) as u16
                                 / paragraph_width;
                         });
 
