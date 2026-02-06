@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax check
+        run: |
+          for f in scripts/*.sh; do
+            bash -n "$f"
+          done
+
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Detect Cargo project
+        id: cargo
+        shell: bash
+        run: |
+          if [[ -f Cargo.toml ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: cargo fmt
+        if: steps.cargo.outputs.present == 'true'
+        run: cargo fmt --all --check
+      - name: cargo clippy
+        if: steps.cargo.outputs.present == 'true'
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: cargo test
+        if: steps.cargo.outputs.present == 'true'
+        run: cargo test --all-targets --all-features

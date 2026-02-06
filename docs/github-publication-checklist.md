@@ -1,0 +1,33 @@
+# GitHub 公開チェックリスト
+
+## リポジトリ準備
+
+- `README.md` に目的・セットアップ・運用方針がある
+- `LICENSE`（MIT）と upstream クレジットを確認済み
+- `.gitignore` と `.editorconfig` が適用されている
+
+## 開発環境
+
+- `./scripts/setup_dev_env.sh` が実行できる
+- `./scripts/check_env.sh` が成功する
+- Rust stable + `rustfmt` + `clippy` が使える
+
+## CI
+
+- Linux で workflow が成功
+- Windows で workflow が成功
+- `Cargo.toml` 導入後に `fmt` / `clippy` / `test` が走る
+
+## 品質
+
+- Windows cmd / PowerShell / WSL の挙動差を確認
+- 日本語表示（全角・絵文字・結合文字）の崩れ確認
+- 日本語検索（NFKC/半角全角）の期待動作確認
+
+## 公開作業
+
+- `git remote add origin <your-repo-url>`
+- `git add .`
+- `git commit -m "chore: bootstrap project"`
+- `git push -u origin main`
+- GitHub で description / topics / release を設定
