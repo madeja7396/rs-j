@@ -141,7 +141,7 @@ jobs:
           - {
               os: "ubuntu-latest",
               target: "x86_64-unknown-linux-musl",
-              cross: false,
+              cross: true,
             }
           - {
               os: "ubuntu-latest",
