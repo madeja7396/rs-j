@@ -192,8 +192,9 @@ pub struct Context<'a> {
 impl<'a> Context<'a> {
     pub fn new(
         width: u16, height: u16, x_bounds: [f64; 2], y_bounds: [f64; 2], marker: Marker,
+        use_ascii: bool,
     ) -> Context<'a> {
-        let grid = Self::marker_to_grid(width, height, marker);
+        let grid = Self::marker_to_grid(width, height, marker, use_ascii);
 
         Context {
             x_bounds,
@@ -204,9 +205,12 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn marker_to_grid(width: u16, height: u16, marker: Marker) -> Box<dyn Grid> {
+    fn marker_to_grid(width: u16, height: u16, marker: Marker, use_ascii: bool) -> Box<dyn Grid> {
         match marker {
-            Marker::Dot => Box::new(CharGrid::new(width, height, '•')),
+            Marker::Dot => {
+                let dot = if use_ascii { '.' } else { '•' };
+                Box::new(CharGrid::new(width, height, dot))
+            }
             Marker::Block => Box::new(CharGrid::new(width, height, '█').apply_color_to_bg()),
             Marker::Bar => Box::new(CharGrid::new(width, height, '▄')),
             Marker::Braille => Box::new(PatternGrid::<2, 4>::new(width, height, &BRAILLE)),
@@ -241,6 +245,7 @@ where
     paint_func: Option<F>,
     background_color: Color,
     marker: Marker,
+    use_ascii: bool,
 }
 
 impl<'a, F> Default for Canvas<'a, F>
@@ -255,6 +260,7 @@ where
             paint_func: None,
             background_color: Color::Reset,
             marker: Marker::Braille,
+            use_ascii: false,
         }
     }
 }
@@ -290,6 +296,12 @@ where
     /// targeted terminal does not support those symbols.
     pub fn marker(mut self, marker: Marker) -> Canvas<'a, F> {
         self.marker = marker;
+        self
+    }
+
+    /// Use ASCII-friendly marker symbols where applicable.
+    pub fn use_ascii(mut self, use_ascii: bool) -> Canvas<'a, F> {
+        self.use_ascii = use_ascii;
         self
     }
 }
@@ -329,6 +341,7 @@ where
             self.x_bounds,
             self.y_bounds,
             self.marker,
+            self.use_ascii,
         );
         // Paint to this context
         painter(&mut ctx);
@@ -381,5 +394,30 @@ where
             let y = ((top - label.y) * resolution.1 / height) as u16 + canvas_area.top();
             buf.set_line(x, y, &label.spans, canvas_area.right() - x);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tui::{style::Color, symbols::Marker};
+
+    use super::Context;
+
+    #[test]
+    fn dot_marker_uses_ascii_dot_when_enabled() {
+        let mut grid = Context::marker_to_grid(1, 1, Marker::Dot, true);
+        grid.paint(0, 0, Color::Reset);
+
+        let layer = grid.save();
+        assert_eq!(layer.contents[0].symbol, Some('.'));
+    }
+
+    #[test]
+    fn dot_marker_uses_unicode_dot_by_default() {
+        let mut grid = Context::marker_to_grid(1, 1, Marker::Dot, false);
+        grid.paint(0, 0, Color::Reset);
+
+        let layer = grid.save();
+        assert_eq!(layer.contents[0].symbol, Some('•'));
     }
 }

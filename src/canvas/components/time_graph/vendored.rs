@@ -437,6 +437,8 @@ pub(super) struct TimeChart<'a> {
     scaling: ChartScaling,
     /// Width calculation mode for labels/titles.
     text_width_mode: TextWidthMode,
+    /// Whether to force ASCII-friendly graph rendering.
+    use_ascii: bool,
 }
 
 impl<'a> TimeChart<'a> {
@@ -454,6 +456,7 @@ impl<'a> TimeChart<'a> {
             marker: Marker::Braille,
             scaling: ChartScaling::default(),
             text_width_mode: TextWidthMode::Normal,
+            use_ascii: false,
         }
     }
 
@@ -556,6 +559,13 @@ impl<'a> TimeChart<'a> {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn text_width_mode(mut self, text_width_mode: TextWidthMode) -> TimeChart<'a> {
         self.text_width_mode = text_width_mode;
+        self
+    }
+
+    /// Use ASCII-friendly symbols for axes and dot markers.
+    #[must_use = "method moves the value of self and returns the modified value"]
+    pub fn use_ascii(mut self, use_ascii: bool) -> TimeChart<'a> {
+        self.use_ascii = use_ascii;
         self
     }
 
@@ -830,12 +840,20 @@ impl Widget for TimeChart<'_> {
 
         self.render_x_labels(buf, &layout, chart_area, graph_area);
         self.render_y_labels(buf, &layout, chart_area, graph_area);
+        let (h_symbol, v_symbol, corner_symbol) = if self.use_ascii {
+            ("-", "|", "+")
+        } else {
+            (
+                symbols::line::HORIZONTAL,
+                symbols::line::VERTICAL,
+                symbols::line::BOTTOM_LEFT,
+            )
+        };
 
         if let Some(y) = layout.axis_x {
             for x in graph_area.left()..graph_area.right() {
                 if let Some(cell) = buf.cell_mut((x, y)) {
-                    cell.set_symbol(symbols::line::HORIZONTAL)
-                        .set_style(self.x_axis.style);
+                    cell.set_symbol(h_symbol).set_style(self.x_axis.style);
                 }
             }
         }
@@ -843,8 +861,7 @@ impl Widget for TimeChart<'_> {
         if let Some(x) = layout.axis_y {
             for y in graph_area.top()..graph_area.bottom() {
                 if let Some(cell) = buf.cell_mut((x, y)) {
-                    cell.set_symbol(symbols::line::VERTICAL)
-                        .set_style(self.y_axis.style);
+                    cell.set_symbol(v_symbol).set_style(self.y_axis.style);
                 }
             }
         }
@@ -852,8 +869,7 @@ impl Widget for TimeChart<'_> {
         if let Some(y) = layout.axis_x {
             if let Some(x) = layout.axis_y {
                 if let Some(cell) = buf.cell_mut((x, y)) {
-                    cell.set_symbol(symbols::line::BOTTOM_LEFT)
-                        .set_style(self.x_axis.style);
+                    cell.set_symbol(corner_symbol).set_style(self.x_axis.style);
                 }
             }
         }
@@ -866,6 +882,7 @@ impl Widget for TimeChart<'_> {
             .x_bounds(x_bounds)
             .y_bounds(y_bounds)
             .marker(self.marker)
+            .use_ascii(self.use_ascii)
             .paint(|ctx| {
                 self.draw_points(ctx);
             })
@@ -1195,6 +1212,26 @@ mod tests {
             .width;
 
         assert!(cjk_width > normal_width);
+    }
+
+    #[test]
+    fn ascii_mode_uses_ascii_axis_intersection_symbol() {
+        let widget = TimeChart::new(vec![])
+            .use_ascii(true)
+            .x_axis(Axis::default().labels(vec![Span::raw("0"), Span::raw("1")]))
+            .y_axis(Axis::default().labels(vec![Span::raw("0"), Span::raw("1")]));
+        let area = Rect::new(0, 0, 12, 6);
+        let layout = widget.layout(area);
+        let mut buffer = Buffer::empty(area);
+
+        widget.render(area, &mut buffer);
+
+        let x = layout.axis_y.expect("y axis should be visible");
+        let y = layout.axis_x.expect("x axis should be visible");
+        assert_eq!(
+            buffer.cell((x, y)).expect("cell should exist").symbol(),
+            "+"
+        );
     }
 
     #[test]

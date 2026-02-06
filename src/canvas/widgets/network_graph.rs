@@ -248,6 +248,7 @@ impl Painter {
                 marker,
                 scaling,
                 text_width_mode: app_state.app_config_fields.text_width_mode,
+                use_ascii: app_state.app_config_fields.safe_terminal_mode,
             }
             .draw(f, draw_loc, graph_data);
         }

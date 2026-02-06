@@ -98,6 +98,9 @@ pub struct TimeGraph<'a> {
 
     /// Width calculation mode for labels/titles.
     pub text_width_mode: TextWidthMode,
+
+    /// Whether to force ASCII-friendly graph rendering.
+    pub use_ascii: bool,
 }
 
 impl TimeGraph<'_> {
@@ -172,6 +175,7 @@ impl TimeGraph<'_> {
                 .y_axis(y_axis)
                 .marker(self.marker)
                 .text_width_mode(self.text_width_mode)
+                .use_ascii(self.use_ascii)
                 .legend_style(self.graph_style)
                 .legend_position(self.legend_position)
                 .hidden_legend_constraints(
@@ -247,6 +251,7 @@ mod test {
             marker: Marker::Braille,
             scaling: ChartScaling::Linear,
             text_width_mode: TextWidthMode::Normal,
+            use_ascii: false,
         }
     }
 

@@ -9,6 +9,7 @@
   - `--dot_marker` と `config.flags.dot_marker` は自動判定より優先
   - WSL 検出時に起動メッセージで既知制約を通知
   - `--safe_terminal` / `flags.safe_terminal` で互換重視プロファイル（basic + dot）を適用
+  - safe profile 時はグラフ軸/交点/ドットを ASCII 寄り記号へ切替（`-`, `|`, `+`, `.`）
 - Phase 3 着手:
   - `width_mode`（`normal` / `cjk` / `unicode-approx`）を CLI と config に追加
   - プロセス検索クエリの幅計算に `width_mode` を適用
@@ -22,7 +23,6 @@
   - 全角/半角・半角カナ揺れの回帰テストを追加
   - 全角の構文トークン（`AND`/`OR`/括弧/接頭辞）も NFKC 経由で解釈
 - 未完了:
-  - ASCII 寄り描画プロファイルの導入
   - 端末判定結果をステータス行から参照可能にする（ヘルプには表示済み）
   - grapheme cluster 前提の幅モードを全ウィジェットへ展開
 

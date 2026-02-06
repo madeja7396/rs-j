@@ -89,7 +89,11 @@ impl Painter {
                             .map(|name| Line::from((*name).clone()))
                             .collect::<Vec<_>>(),
                     )
-                    .divider(tui::symbols::line::VERTICAL)
+                    .divider(if app_state.app_config_fields.safe_terminal_mode {
+                        "|"
+                    } else {
+                        tui::symbols::line::VERTICAL
+                    })
                     .style(self.styles.text_style)
                     .highlight_style(self.styles.selected_text_style)
                     .select(battery_widget_state.currently_selected_battery_index),

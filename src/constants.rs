@@ -263,7 +263,7 @@ pub(crate) const CONFIG_TEXT: &str = r#"# This is a default config file for bott
 #dot_marker = false
 
 # Enables a safer terminal profile for legacy/limited terminals.
-# Implies basic layout + dot markers.
+# Implies basic layout + ASCII-friendly dot/axis rendering.
 #safe_terminal = false
 
 # Width calculation mode for text-heavy widgets.

@@ -116,7 +116,7 @@ fn check_environment_notes(app_config_fields: &AppConfigFields) {
 
     if app_config_fields.safe_terminal_mode {
         eprintln!(
-            "Note: Safe terminal profile is enabled (basic layout + dot markers) for compatibility."
+            "Note: Safe terminal profile is enabled (basic layout + dot/ascii markers) for compatibility."
         );
     }
 }

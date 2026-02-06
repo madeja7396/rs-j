@@ -92,6 +92,7 @@ impl<'a> PercentTimeGraph<'a> {
             marker,
             scaling: ChartScaling::Linear,
             text_width_mode: self.app_config_fields.text_width_mode,
+            use_ascii: self.app_config_fields.safe_terminal_mode,
         }
     }
 }

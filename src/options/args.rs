@@ -233,7 +233,7 @@ pub struct GeneralArgs {
         action = ArgAction::SetTrue,
         help = "Enables a safer terminal profile.",
         long_help = "Enables a safer terminal profile for legacy/limited terminals. \
-                This implies a basic layout and dot markers to reduce rendering breakage.",
+                This implies a basic layout and ASCII-friendly dot/axis rendering to reduce breakage.",
         alias = "safe-terminal"
     )]
     pub safe_terminal: bool,
