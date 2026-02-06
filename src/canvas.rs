@@ -22,6 +22,7 @@ use crate::{
         layout_manager::{BottomColRow, BottomLayout, BottomWidgetType},
     },
     constants::*,
+    localization::{environment_label, status_frozen},
     options::config::style::Styles,
 };
 
@@ -64,13 +65,14 @@ impl Painter {
     fn status_line_text(&self, app_state: &App) -> Option<String> {
         let mut parts = Vec::with_capacity(2);
         if app_state.data_store.is_frozen() {
-            parts.push("Frozen, press 'f' to unfreeze".to_string());
+            parts.push(status_frozen().to_string());
         }
 
         let wsl = app_state.app_config_fields.is_wsl;
         if app_state.app_config_fields.safe_terminal_mode || wsl {
             parts.push(format!(
-                "Env: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+                "{}: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+                environment_label(),
                 app_state.app_config_fields.safe_terminal_mode,
                 app_state.app_config_fields.use_dot,
                 app_state.app_config_fields.text_width_mode.as_str(),

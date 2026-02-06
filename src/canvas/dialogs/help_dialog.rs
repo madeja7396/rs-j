@@ -11,6 +11,7 @@ use crate::{
     app::App,
     canvas::{Painter, drawing_utils::dialog_block},
     constants::{self, HELP_TEXT},
+    localization::{environment_label_verbose, esc_to_close, help_title},
     utils::text_width::display_width,
 };
 
@@ -40,7 +41,8 @@ impl Painter {
 
     pub fn draw_help_dialog(&self, f: &mut Frame<'_>, app_state: &mut App, draw_loc: Rect) {
         let environment_summary = format!(
-            "Environment: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+            "{}: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+            environment_label_verbose(),
             app_state.app_config_fields.safe_terminal_mode,
             app_state.app_config_fields.use_dot,
             app_state.app_config_fields.text_width_mode.as_str(),
@@ -58,9 +60,9 @@ impl Painter {
 
         let block = dialog_block(self.styles.border_type)
             .border_style(self.styles.border_style)
-            .title_top(Line::styled(" Help ", self.styles.widget_title_style))
+            .title_top(Line::styled(help_title(), self.styles.widget_title_style))
             .title_top(
-                Line::styled(" Esc to close ", self.styles.widget_title_style).right_aligned(),
+                Line::styled(esc_to_close(), self.styles.widget_title_style).right_aligned(),
             );
 
         if app_state.should_get_widget_bounds() {

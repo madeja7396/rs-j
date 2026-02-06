@@ -14,6 +14,7 @@ use crate::{
         drawing_utils::should_hide_x_label,
     },
     collection::cpu::CpuData,
+    localization::title_cpu,
     widgets::CpuWidgetState,
 };
 
@@ -196,11 +197,11 @@ impl Painter {
                         load_avg[0], load_avg[1], load_avg[2]
                     );
 
-                    concat_string::concat_string!(" CPU ", load_avg_str).into()
+                    concat_string::concat_string!(title_cpu(), load_avg_str).into()
                 }
                 #[cfg(not(target_family = "unix"))]
                 {
-                    " CPU ".into()
+                    title_cpu().into()
                 }
             };
 

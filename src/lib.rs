@@ -23,6 +23,7 @@ pub(crate) mod canvas;
 pub(crate) mod collection;
 pub(crate) mod constants;
 pub(crate) mod event;
+pub(crate) mod localization;
 pub mod options;
 pub mod widgets;
 
@@ -55,7 +56,7 @@ use tui::{Terminal, backend::CrosstermBackend};
 use utils::logging::*;
 use utils::{cancellation_token::CancellationToken, conversion::*};
 
-use crate::collection::Data;
+use crate::{collection::Data, localization::is_japanese};
 
 // Used for heap allocation debugging purposes.
 // #[global_allocator]
@@ -97,10 +98,17 @@ fn check_if_terminal() {
     use crossterm::tty::IsTty;
 
     if !stdout().is_tty() {
-        eprintln!(
-            "Warning: bottom is not being output to a terminal. Things might not work properly."
-        );
-        eprintln!("If you're stuck, press 'q' or 'Ctrl-c' to quit the program.");
+        if is_japanese() {
+            eprintln!(
+                "警告: bottom の出力先が端末ではありません。正常に動作しない可能性があります。"
+            );
+            eprintln!("終了できない場合は 'q' または 'Ctrl-c' を押してください。");
+        } else {
+            eprintln!(
+                "Warning: bottom is not being output to a terminal. Things might not work properly."
+            );
+            eprintln!("If you're stuck, press 'q' or 'Ctrl-c' to quit the program.");
+        }
         stderr().flush().expect("should succeed in flushing stderr");
         thread::sleep(Duration::from_secs(1));
     }
@@ -109,15 +117,27 @@ fn check_if_terminal() {
 /// Show environment-specific caveats that can affect metrics/readability.
 fn check_environment_notes(app_config_fields: &AppConfigFields) {
     if app_config_fields.is_wsl {
-        eprintln!(
-            "Note: WSL environment detected. Some metrics (for example, temperatures) may not match native Windows tools."
-        );
+        if is_japanese() {
+            eprintln!(
+                "注記: WSL 環境を検出しました。一部メトリクス（例: 温度）は Windows ネイティブツールと一致しない場合があります。"
+            );
+        } else {
+            eprintln!(
+                "Note: WSL environment detected. Some metrics (for example, temperatures) may not match native Windows tools."
+            );
+        }
     }
 
     if app_config_fields.safe_terminal_mode {
-        eprintln!(
-            "Note: Safe terminal profile is enabled (basic layout + dot/ascii markers) for compatibility."
-        );
+        if is_japanese() {
+            eprintln!(
+                "注記: 互換性のため Safe terminal プロファイル（基本レイアウト + dot/ascii 表示）が有効です。"
+            );
+        } else {
+            eprintln!(
+                "Note: Safe terminal profile is enabled (basic layout + dot/ascii markers) for compatibility."
+            );
+        }
     }
 }
 

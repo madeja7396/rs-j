@@ -19,6 +19,7 @@ use crate::{
     app::layout_manager::BottomWidget,
     canvas::{Painter, drawing_utils::widget_block},
     constants::TABLE_GAP_HEIGHT_LIMIT,
+    localization::{esc_to_go_back, no_data},
     utils::{strings::truncate_to_text, text_width::TextWidthMode},
 };
 
@@ -121,7 +122,7 @@ where
             let left_title = Line::from(Span::styled(title, title_style)).left_aligned();
 
             let right_title = if draw_info.is_expanded() {
-                Some(Line::from(" Esc to go back ").right_aligned())
+                Some(Line::from(esc_to_go_back()).right_aligned())
             } else {
                 None
             };
@@ -278,7 +279,7 @@ where
                 f.render_stateful_widget(widget, margined_draw_loc, table_state);
             } else {
                 let table = Table::new(
-                    once(Row::new(Text::raw("No data"))),
+                    once(Row::new(Text::raw(no_data()))),
                     [Constraint::Percentage(100)],
                 )
                 .block(block)

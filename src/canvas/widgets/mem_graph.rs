@@ -15,6 +15,7 @@ use crate::{
     },
     collection::memory::MemData,
     get_binary_unit_and_denominator,
+    localization::title_memory,
 };
 
 /// Convert memory info into a combined memory label.
@@ -170,7 +171,7 @@ impl Painter {
                 app_config_fields: &app_state.app_config_fields,
                 current_widget: app_state.current_widget.widget_id,
                 is_expanded: app_state.is_expanded,
-                title: " Memory ".into(),
+                title: title_memory().into(),
                 styles: &self.styles,
                 widget_id,
                 legend_position: app_state.app_config_fields.memory_legend_position,

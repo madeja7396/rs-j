@@ -13,6 +13,7 @@ use tui::{
 use crate::{
     app::data::Values,
     canvas::{components::time_graph::*, drawing_utils::widget_block},
+    localization::esc_to_go_back,
     utils::text_width::TextWidthMode,
 };
 
@@ -162,7 +163,7 @@ impl TimeGraph<'_> {
                 .title_top(Line::styled(self.title.as_ref(), self.title_style));
 
             if self.is_expanded {
-                b = b.title_top(Line::styled(" Esc to go back ", self.title_style).right_aligned())
+                b = b.title_top(Line::styled(esc_to_go_back(), self.title_style).right_aligned())
             }
 
             b

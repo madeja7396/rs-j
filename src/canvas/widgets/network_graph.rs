@@ -15,6 +15,7 @@ use crate::{
         components::time_graph::{AxisBound, ChartScaling, GraphData, TimeGraph},
         drawing_utils::should_hide_x_label,
     },
+    localization::{is_japanese, title_network},
     utils::{
         data_units::*,
         general::{saturating_log2, saturating_log10},
@@ -179,14 +180,19 @@ impl Painter {
             let tx = get_unit_prefix(network_latest_data.tx, use_binary_prefix);
             let total_rx = convert_bits(network_latest_data.total_rx, use_binary_prefix);
             let total_tx = convert_bits(network_latest_data.total_tx, use_binary_prefix);
+            let (rx_name, tx_name, total_rx_name, total_tx_name, all_name) = if is_japanese() {
+                ("受信", "送信", "累積受信", "累積送信", "累積")
+            } else {
+                ("RX", "TX", "Total RX", "Total TX", "All")
+            };
 
             // TODO: This behaviour is pretty weird, we should probably just make it so if you use old network legend
             // you don't do whatever this is...
             let graph_data = if app_state.app_config_fields.use_old_network_legend && !full_screen {
-                let rx_label = format!("RX: {:.1}{}{}", rx.0, rx.1, unit);
-                let tx_label = format!("TX: {:.1}{}{}", tx.0, tx.1, unit);
-                let total_rx_label = format!("Total RX: {:.1}{}", total_rx.0, total_rx.1);
-                let total_tx_label = format!("Total TX: {:.1}{}", total_tx.0, total_tx.1);
+                let rx_label = format!("{rx_name}: {:.1}{}{}", rx.0, rx.1, unit);
+                let tx_label = format!("{tx_name}: {:.1}{}{}", tx.0, tx.1, unit);
+                let total_rx_label = format!("{total_rx_name}: {:.1}{}", total_rx.0, total_rx.1);
+                let total_tx_label = format!("{total_tx_name}: {:.1}{}", total_tx.0, total_tx.1);
 
                 vec![
                     GraphData::default()
@@ -217,12 +223,16 @@ impl Painter {
 
                 vec![
                     GraphData::default()
-                        .name(format!("RX: {rx_padded}  All: {total_rx_label}").into())
+                        .name(
+                            format!("{rx_name}: {rx_padded}  {all_name}: {total_rx_label}").into(),
+                        )
                         .time(times)
                         .values(rx_points)
                         .style(self.styles.rx_style),
                     GraphData::default()
-                        .name(format!("TX: {tx_padded}  All: {total_tx_label}").into())
+                        .name(
+                            format!("{tx_name}: {tx_padded}  {all_name}: {total_tx_label}").into(),
+                        )
                         .time(times)
                         .values(tx_points)
                         .style(self.styles.tx_style),
@@ -255,7 +265,7 @@ impl Painter {
                 graph_style: self.styles.graph_style,
                 border_style,
                 border_type: self.styles.border_type,
-                title: " Network ".into(),
+                title: title_network().into(),
                 is_selected: app_state.current_widget.widget_id == widget_id,
                 is_expanded: app_state.is_expanded,
                 title_style: self.styles.widget_title_style,
@@ -273,7 +283,11 @@ impl Painter {
     fn draw_network_labels(
         &self, f: &mut Frame<'_>, app_state: &mut App, draw_loc: Rect, widget_id: u64,
     ) {
-        const NETWORK_HEADERS: [&str; 4] = ["RX", "TX", "Total RX", "Total TX"];
+        let network_headers = if is_japanese() {
+            ["受信", "送信", "累積受信", "累積送信"]
+        } else {
+            ["RX", "TX", "Total RX", "Total TX"]
+        };
 
         let network_latest_data = &(app_state.data_store.get_data().network_harvest);
         let use_binary_prefix = app_state.app_config_fields.network_use_binary_prefix;
@@ -310,7 +324,7 @@ impl Painter {
                     .map(Constraint::Length)
                     .collect::<Vec<_>>()),
             )
-            .header(Row::new(NETWORK_HEADERS).style(self.styles.table_header_style))
+            .header(Row::new(network_headers).style(self.styles.table_header_style))
             .block(Block::default().borders(Borders::ALL).border_style(
                 if app_state.current_widget.widget_id == widget_id {
                     self.styles.highlighted_border_style

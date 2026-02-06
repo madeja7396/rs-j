@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use tui::layout::Constraint;
 
-use crate::{constants::DEFAULT_WIDGET_ID, options::OptionError};
+use crate::{constants::DEFAULT_WIDGET_ID, localization::is_japanese, options::OptionError};
 
 // Represents a start and end coordinate in some dimension.
 type LineSegment = (u16, u16);
@@ -964,12 +964,48 @@ impl BottomWidgetType {
         use BottomWidgetType::*;
         match self {
             Cpu => "CPU",
-            Mem => "Memory",
-            Net => "Network",
-            Proc => "Processes",
-            Temp => "Temperature",
-            Disk => "Disks",
-            Battery => "Battery",
+            Mem => {
+                if is_japanese() {
+                    "メモリ"
+                } else {
+                    "Memory"
+                }
+            }
+            Net => {
+                if is_japanese() {
+                    "ネットワーク"
+                } else {
+                    "Network"
+                }
+            }
+            Proc => {
+                if is_japanese() {
+                    "プロセス"
+                } else {
+                    "Processes"
+                }
+            }
+            Temp => {
+                if is_japanese() {
+                    "温度"
+                } else {
+                    "Temperature"
+                }
+            }
+            Disk => {
+                if is_japanese() {
+                    "ディスク"
+                } else {
+                    "Disks"
+                }
+            }
+            Battery => {
+                if is_japanese() {
+                    "バッテリー"
+                } else {
+                    "Battery"
+                }
+            }
             _ => "",
         }
     }
