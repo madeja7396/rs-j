@@ -1,6 +1,7 @@
 use std::{collections::VecDeque, fmt::Debug};
 
 use humantime::parse_duration;
+use unicode_normalization::UnicodeNormalization;
 
 use crate::{
     collection::processes::ProcessHarvest,
@@ -21,6 +22,7 @@ fn process_prefix_units(query: &mut VecDeque<String>, value: &mut f64) {
     // require (likely) prefix_type specific checks
     // Lastly, if it *is* a unit, remember to POP!
     if let Some(potential_unit) = query.front() {
+        let potential_unit = potential_unit.nfkc().collect::<String>();
         if potential_unit.eq_ignore_ascii_case("tb") {
             *value *= TERA_LIMIT_F64;
             query.pop_front();

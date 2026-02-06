@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use unicode_normalization::UnicodeNormalization;
+
 use crate::{
     collection::processes::ProcessHarvest,
     widgets::query::{
@@ -37,13 +39,14 @@ impl QueryProcessor for Or {
         let mut rhs: Option<Box<And>> = None;
 
         while let Some(queue_top) = query.front() {
-            let current_lowercase = queue_top.to_lowercase();
+            let current_lowercase = queue_top.nfkc().collect::<String>().to_lowercase();
             if OR_LIST.contains(&current_lowercase.as_str()) {
                 query.pop_front();
                 rhs = Some(Box::new(And::process(query, options)?));
 
                 if let Some(queue_next) = query.front() {
-                    if OR_LIST.contains(&queue_next.to_lowercase().as_str()) {
+                    let next_lowercase = queue_next.nfkc().collect::<String>().to_lowercase();
+                    if OR_LIST.contains(&next_lowercase.as_str()) {
                         // Must merge LHS and RHS
                         lhs = And {
                             lhs: Prefix::Or(Box::new(Or { lhs, rhs })),

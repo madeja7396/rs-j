@@ -18,6 +18,7 @@ use error::{QueryError, QueryResult};
 use or::Or;
 use prefix::Prefix;
 use regex::Regex;
+use unicode_normalization::UnicodeNormalization;
 
 use crate::{collection::processes::ProcessHarvest, multi_eq_ignore_ascii_case};
 
@@ -120,17 +121,23 @@ pub(crate) fn parse_query(search_query: &str, options: &QueryOptions) -> QueryRe
     let mut split_query = VecDeque::new();
 
     search_query.split_whitespace().for_each(|s| {
+        let normalized = if options.use_regex {
+            s.to_string()
+        } else {
+            s.nfkc().collect::<String>()
+        };
+
         // From https://stackoverflow.com/a/56923739 get a split but include the parentheses
         let mut last = 0;
-        for (index, matched) in s.match_indices(|x| DELIMITER_LIST.contains(&x)) {
+        for (index, matched) in normalized.match_indices(|x| DELIMITER_LIST.contains(&x)) {
             if last != index {
-                split_query.push_back(s[last..index].to_owned());
+                split_query.push_back(normalized[last..index].to_owned());
             }
             split_query.push_back(matched.to_owned());
             last = index + matched.len();
         }
-        if last < s.len() {
-            split_query.push_back(s[last..].to_owned());
+        if last < normalized.len() {
+            split_query.push_back(normalized[last..].to_owned());
         }
     });
 
@@ -764,6 +771,33 @@ mod tests {
 
         assert!(query.check(&process_a, false));
         assert!(query.check(&process_b, false));
+        assert!(!query.check(&process_c, false));
+    }
+
+    #[test]
+    fn test_nfkc_parses_fullwidth_prefix() {
+        let query = parse_query_no_options("ＣＰＵ > 50").unwrap();
+
+        let mut process_a = simple_process("a");
+        process_a.cpu_usage_percent = 60.0;
+
+        let mut process_b = simple_process("a");
+        process_b.cpu_usage_percent = 40.0;
+
+        assert!(query.check(&process_a, false));
+        assert!(!query.check(&process_b, false));
+    }
+
+    #[test]
+    fn test_nfkc_parses_fullwidth_boolean_and_paren() {
+        let query = parse_query_no_options("（a ＯＲ b） ＡＮＤ a").unwrap();
+
+        let process_a = simple_process("a");
+        let process_b = simple_process("b");
+        let process_c = simple_process("c");
+
+        assert!(query.check(&process_a, false));
+        assert!(!query.check(&process_b, false));
         assert!(!query.check(&process_c, false));
     }
 
