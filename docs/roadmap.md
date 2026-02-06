@@ -2,6 +2,16 @@
 
 `docs/shoki-keikaku.md` の内容を、fork 実装向けに分解した実行計画です。
 
+## 進捗メモ（2026-02-06）
+
+- Phase 2 着手:
+  - Windows cmd/PowerShell 風環境を検出して `dot_marker` を自動有効化
+  - `--dot_marker` と `config.flags.dot_marker` は自動判定より優先
+  - WSL 検出時に起動メッセージで既知制約を通知
+- 未完了:
+  - ASCII 寄り描画プロファイルの導入
+  - 端末判定結果をヘルプ/ステータスから参照可能にする
+
 ## Phase 0: リポジトリ初期化
 
 - 開発スクリプトと CI を整備する

@@ -13,6 +13,7 @@
 #average_cpu_row = false
 
 # Whether to use dot markers rather than braille.
+# If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts.
 #dot_marker = false
 
 # The update rate of the application.

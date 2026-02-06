@@ -222,7 +222,8 @@ pub struct GeneralArgs {
         long,
         action = ArgAction::SetTrue,
         help = "Uses a dot marker for graphs.",
-        long_help = "Uses a dot marker for graphs as opposed to the default braille marker.",
+        long_help = "Uses a dot marker for graphs as opposed to the default braille marker. \
+                If unset, rs-j may auto-enable dot markers on Windows cmd/PowerShell hosts.",
         alias = "dot-marker"
     )]
     pub dot_marker: bool,

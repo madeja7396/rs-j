@@ -34,7 +34,7 @@ use crate::{
     app::{filter::Filter, layout_manager::*, *},
     canvas::components::time_graph::LegendPosition,
     constants::*,
-    utils::data_units::DataUnit,
+    utils::{data_units::DataUnit, terminal::should_auto_enable_dot_marker},
     widgets::*,
 };
 
@@ -299,7 +299,7 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         temperature_type: get_temperature(args, config)
             .context("Update 'temperature_type' in your config file.")?,
         show_average_cpu: get_show_average_cpu(args, config),
-        use_dot: is_flag_enabled!(dot_marker, args.general, config),
+        use_dot: get_use_dot_marker(args, config),
         cpu_left_legend: is_flag_enabled!(cpu_left_legend, args.cpu, config),
         use_current_cpu_total: is_flag_enabled!(current_usage, args.process, config),
         unnormalized_cpu: is_flag_enabled!(unnormalized_cpu, args.process, config),
@@ -744,6 +744,24 @@ fn get_show_average_cpu(args: &BottomArgs, config: &Config) -> bool {
     true
 }
 
+/// Returns whether graph widgets should use dot markers instead of braille.
+///
+/// Priority:
+/// 1) CLI flag (`--dot_marker`)
+/// 2) Config file (`[flags].dot_marker`)
+/// 3) Automatic safe default for Windows cmd/PowerShell hosts
+fn get_use_dot_marker(args: &BottomArgs, config: &Config) -> bool {
+    if args.general.dot_marker {
+        true
+    } else if let Some(flags) = &config.flags {
+        flags
+            .dot_marker
+            .unwrap_or_else(should_auto_enable_dot_marker)
+    } else {
+        should_auto_enable_dot_marker()
+    }
+}
+
 // I hate this too.
 fn get_default_cpu_selection(args: &BottomArgs, config: &Config) -> config::cpu::CpuDefault {
     match &args.cpu.default_cpu_entry {
@@ -1051,7 +1069,7 @@ mod test {
         args::BottomArgs,
         options::{
             config::flags::GeneralConfig, get_default_time_value, get_retention, get_update_rate,
-            try_parse_ms,
+            get_use_dot_marker, try_parse_ms,
         },
     };
 
@@ -1212,6 +1230,37 @@ mod test {
         assert_eq!(get_update_rate(&args, &config), Ok(1000));
 
         assert_eq!(get_retention(&args, &config), Ok(600000));
+    }
+
+    #[test]
+    fn dot_marker_cli_overrides_config() {
+        let args = BottomArgs::parse_from(["btm", "--dot_marker"]);
+
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            dot_marker: Some(false),
+            ..Default::default()
+        });
+
+        assert!(get_use_dot_marker(&args, &config));
+    }
+
+    #[test]
+    fn dot_marker_config_can_enable_or_disable() {
+        let args = BottomArgs::parse_from(["btm"]);
+
+        let mut config = Config::default();
+        config.flags = Some(GeneralConfig {
+            dot_marker: Some(true),
+            ..Default::default()
+        });
+        assert!(get_use_dot_marker(&args, &config));
+
+        config.flags = Some(GeneralConfig {
+            dot_marker: Some(false),
+            ..Default::default()
+        });
+        assert!(!get_use_dot_marker(&args, &config));
     }
 
     fn create_app(args: BottomArgs) -> App {

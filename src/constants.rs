@@ -259,6 +259,7 @@ pub(crate) const CONFIG_TEXT: &str = r#"# This is a default config file for bott
 #average_cpu_row = false
 
 # Whether to use dot markers rather than braille.
+# If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts.
 #dot_marker = false
 
 # The update rate of the application.

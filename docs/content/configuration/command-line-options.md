@@ -16,7 +16,7 @@ see information on these options by running `btm -h`, or run `btm --help` to dis
 | `--disable_click`                   | Disables mouse clicks.                                     |
 | `--disable_keys`                    | Disables keyboard shortcuts, INCLUDING the ones that stop  |
 |                                     | bottom.                                                    |
-| `-m`, `--dot_marker`                | Uses a dot marker for graphs.                              |
+| `-m`, `--dot_marker`                | Uses a dot marker for graphs. If unset, rs-j may auto-enable this on Windows cmd/PowerShell hosts. |
 | `-e`, `--expanded`                  | Expand the default widget upon starting the app.           |
 | `--hide_table_gap`                  | Hides spacing between table headers and entries.           |
 | `--hide_time`                       | Hides the time scale from being shown.                     |

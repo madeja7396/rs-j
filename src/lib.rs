@@ -16,6 +16,7 @@ mod utils {
     pub(crate) mod logging;
     pub(crate) mod process_killer;
     pub(crate) mod strings;
+    pub(crate) mod terminal;
 }
 pub(crate) mod canvas;
 pub(crate) mod collection;
@@ -101,6 +102,15 @@ fn check_if_terminal() {
         eprintln!("If you're stuck, press 'q' or 'Ctrl-c' to quit the program.");
         stderr().flush().expect("should succeed in flushing stderr");
         thread::sleep(Duration::from_secs(1));
+    }
+}
+
+/// Show environment-specific caveats that can affect metrics/readability.
+fn check_environment_notes() {
+    if utils::terminal::is_wsl() {
+        eprintln!(
+            "Note: WSL environment detected. Some metrics (for example, temperatures) may not match native Windows tools."
+        );
     }
 }
 
@@ -317,6 +327,7 @@ pub fn start_bottom(enable_error_hook: &mut bool) -> anyhow::Result<()> {
 
     // Check if the current environment is in a terminal.
     check_if_terminal();
+    check_environment_notes();
 
     let cancellation_token = Arc::new(CancellationToken::default());
     let (sender, receiver) = mpsc::channel();
