@@ -61,12 +61,33 @@ impl Painter {
         }
     }
 
-    fn draw_frozen_indicator(&self, f: &mut Frame<'_>, draw_loc: Rect) {
+    fn status_line_text(&self, app_state: &App) -> Option<String> {
+        let mut parts = Vec::with_capacity(2);
+        if app_state.data_store.is_frozen() {
+            parts.push("Frozen, press 'f' to unfreeze".to_string());
+        }
+
+        let wsl = app_state.app_config_fields.is_wsl;
+        if app_state.app_config_fields.safe_terminal_mode || wsl {
+            parts.push(format!(
+                "Env: safe_terminal={}, dot_marker={}, width_mode={}, wsl={}",
+                app_state.app_config_fields.safe_terminal_mode,
+                app_state.app_config_fields.use_dot,
+                app_state.app_config_fields.text_width_mode.as_str(),
+                wsl
+            ));
+        }
+
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join(" | "))
+        }
+    }
+
+    fn draw_status_indicator(&self, f: &mut Frame<'_>, draw_loc: Rect, status_text: &str) {
         f.render_widget(
-            Paragraph::new(Span::styled(
-                "Frozen, press 'f' to unfreeze",
-                self.styles.selected_text_style,
-            )),
+            Paragraph::new(Span::styled(status_text, self.styles.selected_text_style)),
             Layout::default()
                 .horizontal_margin(1)
                 .constraints([Constraint::Length(1)])
@@ -80,8 +101,8 @@ impl Painter {
         use BottomWidgetType::*;
 
         terminal.draw(|f| {
-            let (terminal_size, frozen_draw_loc) = if app_state.data_store.is_frozen() {
-                // TODO: Remove built-in cache?
+            let status_text = self.status_line_text(app_state);
+            let (terminal_size, status_draw_loc) = if status_text.is_some() {
                 let split_loc = Layout::default()
                     .constraints([Constraint::Min(0), Constraint::Length(1)])
                     .split(f.area());
@@ -116,6 +137,12 @@ impl Painter {
                 for battery_widget in app_state.states.battery_state.widget_states.values_mut() {
                     battery_widget.tab_click_locs = None;
                 }
+            }
+
+            if let (Some(status_draw_loc), Some(status_text)) =
+                (status_draw_loc, status_text.as_deref())
+            {
+                self.draw_status_indicator(f, status_draw_loc, status_text);
             }
 
             // TODO: Make drawing dialog generic.
@@ -207,10 +234,6 @@ impl Painter {
                     app_state.app_config_fields.text_width_mode,
                 );
             } else if app_state.is_expanded {
-                if let Some(frozen_draw_loc) = frozen_draw_loc {
-                    self.draw_frozen_indicator(f, frozen_draw_loc);
-                }
-
                 let rect = Layout::default()
                     .margin(0)
                     .constraints([Constraint::Percentage(100)])
@@ -268,10 +291,6 @@ impl Painter {
             } else if app_state.app_config_fields.use_basic_mode {
                 // Basic mode. This basically removes all graphs but otherwise
                 // the same info.
-                if let Some(frozen_draw_loc) = frozen_draw_loc {
-                    self.draw_frozen_indicator(f, frozen_draw_loc);
-                }
-
                 let data = app_state.data_store.get_data();
                 let actual_cpu_data_len = data.cpu_harvest.len();
 
@@ -381,10 +400,6 @@ impl Painter {
                 }
             } else {
                 // Draws using the passed in (or default) layout.
-                if let Some(frozen_draw_loc) = frozen_draw_loc {
-                    self.draw_frozen_indicator(f, frozen_draw_loc);
-                }
-
                 // A two-pass algorithm - get layouts using constraints (first pass),
                 // then pass each layout to the corresponding widget (second pass).
                 // Note that layouts are already cached in ratatui, so we don't need

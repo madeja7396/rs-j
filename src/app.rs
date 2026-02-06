@@ -45,6 +45,7 @@ pub struct AppConfigFields {
     pub get_process_threads: bool,
     pub use_basic_mode: bool,
     pub safe_terminal_mode: bool,
+    pub is_wsl: bool,
     pub default_time_value: u64,
     pub time_interval: u64,
     pub hide_time: bool,

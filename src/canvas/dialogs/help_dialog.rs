@@ -11,7 +11,7 @@ use crate::{
     app::App,
     canvas::{Painter, drawing_utils::dialog_block},
     constants::{self, HELP_TEXT},
-    utils::{terminal, text_width::display_width},
+    utils::text_width::display_width,
 };
 
 // TODO: [REFACTOR] Make generic dialog boxes to build off of instead?
@@ -44,7 +44,7 @@ impl Painter {
             app_state.app_config_fields.safe_terminal_mode,
             app_state.app_config_fields.use_dot,
             app_state.app_config_fields.text_width_mode.as_str(),
-            terminal::is_wsl(),
+            app_state.app_config_fields.is_wsl,
         );
 
         let mut styled_help_text = vec![

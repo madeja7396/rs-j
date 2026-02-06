@@ -35,7 +35,9 @@ use crate::{
     canvas::components::time_graph::LegendPosition,
     constants::*,
     utils::{
-        data_units::DataUnit, terminal::should_auto_enable_dot_marker, text_width::TextWidthMode,
+        data_units::DataUnit,
+        terminal::{is_wsl, should_auto_enable_dot_marker},
+        text_width::TextWidthMode,
     },
     widgets::*,
 };
@@ -309,6 +311,7 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         get_process_threads: is_flag_enabled_new!(get_threads, args.process, config.processes),
         use_basic_mode,
         safe_terminal_mode,
+        is_wsl: is_wsl(),
         default_time_value,
         time_interval: get_time_interval(args, config, retention_ms)?,
         hide_time: is_flag_enabled!(hide_time, args.general, config),

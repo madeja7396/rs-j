@@ -108,7 +108,7 @@ fn check_if_terminal() {
 
 /// Show environment-specific caveats that can affect metrics/readability.
 fn check_environment_notes(app_config_fields: &AppConfigFields) {
-    if utils::terminal::is_wsl() {
+    if app_config_fields.is_wsl {
         eprintln!(
             "Note: WSL environment detected. Some metrics (for example, temperatures) may not match native Windows tools."
         );
