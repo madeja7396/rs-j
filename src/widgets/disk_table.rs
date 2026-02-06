@@ -8,6 +8,7 @@ use crate::{
         ColumnHeader, DataTableColumn, DataTableProps, DataTableStyling, DataToCell, SortColumn,
         SortDataTable, SortDataTableProps, SortOrder, SortsRow,
     },
+    localization::{is_japanese, title_disks},
     options::config::style::Styles,
     utils::{
         conversion::dec_bytes_per_second_string,
@@ -34,6 +35,8 @@ impl DiskWidgetData {
         if let Some(total_bytes) = self.total_bytes {
             let converted_total_space = get_decimal_bytes(total_bytes);
             format!("{:.0}{}", converted_total_space.0, converted_total_space.1).into()
+        } else if is_japanese() {
+            "該当なし".into()
         } else {
             "N/A".into()
         }
@@ -43,6 +46,8 @@ impl DiskWidgetData {
         if let Some(free_bytes) = self.free_bytes {
             let converted_free_space = get_decimal_bytes(free_bytes);
             format!("{:.0}{}", converted_free_space.0, converted_free_space.1).into()
+        } else if is_japanese() {
+            "該当なし".into()
         } else {
             "N/A".into()
         }
@@ -52,6 +57,8 @@ impl DiskWidgetData {
         if let Some(used_bytes) = self.used_bytes {
             let converted_free_space = get_decimal_bytes(used_bytes);
             format!("{:.0}{}", converted_free_space.0, converted_free_space.1).into()
+        } else if is_japanese() {
+            "該当なし".into()
         } else {
             "N/A".into()
         }
@@ -86,15 +93,29 @@ impl DiskWidgetData {
     }
 
     fn io_read(&self) -> Cow<'static, str> {
-        self.io_read_rate_bytes.map_or("N/A".into(), |r_rate| {
-            dec_bytes_per_second_string(r_rate).into()
-        })
+        self.io_read_rate_bytes.map_or_else(
+            || {
+                if is_japanese() {
+                    "該当なし".into()
+                } else {
+                    "N/A".into()
+                }
+            },
+            |r_rate| dec_bytes_per_second_string(r_rate).into(),
+        )
     }
 
     fn io_write(&self) -> Cow<'static, str> {
-        self.io_write_rate_bytes.map_or("N/A".into(), |w_rate| {
-            dec_bytes_per_second_string(w_rate).into()
-        })
+        self.io_write_rate_bytes.map_or_else(
+            || {
+                if is_japanese() {
+                    "該当なし".into()
+                } else {
+                    "N/A".into()
+                }
+            },
+            |w_rate| dec_bytes_per_second_string(w_rate).into(),
+        )
     }
 }
 
@@ -160,13 +181,55 @@ impl DiskColumn {
 impl ColumnHeader for DiskColumn {
     fn text(&self) -> Cow<'static, str> {
         match self {
-            DiskColumn::Disk => "Disk(d)",
-            DiskColumn::Mount => "Mount(m)",
-            DiskColumn::Used => "Used(u)",
-            DiskColumn::Free => "Free(n)",
-            DiskColumn::Total => "Total(t)",
-            DiskColumn::UsedPercent => "Used%(p)",
-            DiskColumn::FreePercent => "Free%",
+            DiskColumn::Disk => {
+                if is_japanese() {
+                    "ディスク(d)"
+                } else {
+                    "Disk(d)"
+                }
+            }
+            DiskColumn::Mount => {
+                if is_japanese() {
+                    "マウント(m)"
+                } else {
+                    "Mount(m)"
+                }
+            }
+            DiskColumn::Used => {
+                if is_japanese() {
+                    "使用量(u)"
+                } else {
+                    "Used(u)"
+                }
+            }
+            DiskColumn::Free => {
+                if is_japanese() {
+                    "空き(n)"
+                } else {
+                    "Free(n)"
+                }
+            }
+            DiskColumn::Total => {
+                if is_japanese() {
+                    "合計(t)"
+                } else {
+                    "Total(t)"
+                }
+            }
+            DiskColumn::UsedPercent => {
+                if is_japanese() {
+                    "使用率%(p)"
+                } else {
+                    "Used%(p)"
+                }
+            }
+            DiskColumn::FreePercent => {
+                if is_japanese() {
+                    "空き%"
+                } else {
+                    "Free%"
+                }
+            }
             DiskColumn::IoRead => "R/s(r)",
             DiskColumn::IoWrite => "W/s(w)",
         }
@@ -182,7 +245,13 @@ impl DataToCell<DiskColumn> for DiskWidgetData {
         fn percent_string(value: Option<f64>) -> Cow<'static, str> {
             match value {
                 Some(val) => format!("{val:.1}%").into(),
-                None => "N/A".into(),
+                None => {
+                    if is_japanese() {
+                        "該当なし".into()
+                    } else {
+                        "N/A".into()
+                    }
+                }
             }
         }
 
@@ -305,7 +374,7 @@ impl DiskTableWidget {
     pub fn new(config: &AppConfigFields, palette: &Styles, columns: Option<&[DiskColumn]>) -> Self {
         let props = SortDataTableProps {
             inner: DataTableProps {
-                title: Some(" Disks ".into()),
+                title: Some(title_disks().into()),
                 table_gap: config.table_gap,
                 left_to_right: true,
                 is_basic: config.use_basic_mode,

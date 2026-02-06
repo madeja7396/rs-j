@@ -15,6 +15,10 @@ use tui::{
 use crate::{
     canvas::drawing_utils::dialog_block,
     collection::processes::Pid,
+    localization::{
+        confirm_kill_title, error_title, esc_to_close, is_japanese, no_label, select_signal_title,
+        yes_label,
+    },
     options::config::style::Styles,
     utils::text_width::{TextWidthMode, truncate_to_width},
 };
@@ -290,7 +294,17 @@ impl ProcessKillDialog {
                                     }
                                 }
                             } else {
-                                self.state = ProcessKillDialogState::Error { process_name, pid: None, err: "Killing processes is not supported on this platform.".into() };
+                                self.state = ProcessKillDialogState::Error {
+                                    process_name,
+                                    pid: None,
+                                    err: if is_japanese() {
+                                        "このプラットフォームではプロセス終了がサポートされていません。"
+                                            .into()
+                                    } else {
+                                        "Killing processes is not supported on this platform."
+                                            .into()
+                                    },
+                                };
 
                             }
                         }
@@ -597,7 +611,11 @@ impl ProcessKillDialog {
             self.state = ProcessKillDialogState::Error {
                 process_name,
                 pid: None,
-                err: "No PIDs found for the given process name.".into(),
+                err: if is_japanese() {
+                    "指定したプロセス名に一致する PID が見つかりませんでした。".into()
+                } else {
+                    "No PIDs found for the given process name.".into()
+                },
             };
             return;
         }
@@ -646,10 +664,22 @@ impl ProcessKillDialog {
                     truncate_to_width(process_name, MAX_PROCESS_NAME_WIDTH, width_mode);
 
                 let text = if pids.len() > 1 {
+                    if is_japanese() {
+                        Line::from(format!(
+                            "'{}' という名前のプロセスを {} 件終了しますか？ ENTER で確定します。",
+                            truncated_process_name,
+                            pids.len()
+                        ))
+                    } else {
+                        Line::from(format!(
+                            "Kill {} processes with the name '{}'? Press ENTER to confirm.",
+                            pids.len(),
+                            truncated_process_name
+                        ))
+                    }
+                } else if is_japanese() {
                     Line::from(format!(
-                        "Kill {} processes with the name '{}'? Press ENTER to confirm.",
-                        pids.len(),
-                        truncated_process_name
+                        "PID {first_pid} のプロセス '{truncated_process_name}' を終了しますか？ ENTER で確定します。"
                     ))
                 } else {
                     Line::from(format!(
@@ -660,8 +690,16 @@ impl ProcessKillDialog {
                 Text::from(vec![text])
             } else {
                 Text::from(vec![
-                    "Could not find process to kill.".into(),
-                    "Please press ENTER or ESC to close this dialog.".into(),
+                    if is_japanese() {
+                        "終了対象のプロセスが見つかりませんでした。".into()
+                    } else {
+                        "Could not find process to kill.".into()
+                    },
+                    if is_japanese() {
+                        "ENTER または ESC でこのダイアログを閉じてください。".into()
+                    } else {
+                        "Please press ENTER or ESC to close this dialog.".into()
+                    },
                 ])
             }
         };
@@ -674,16 +712,16 @@ impl ProcessKillDialog {
         let title = match button_state {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "freebsd"))]
             ButtonState::Signals { .. } => {
-                Line::styled(" Select Signal ", styles.widget_title_style)
+                Line::styled(select_signal_title(), styles.widget_title_style)
             }
             ButtonState::Simple { .. } => {
-                Line::styled(" Confirm Kill Process ", styles.widget_title_style)
+                Line::styled(confirm_kill_title(), styles.widget_title_style)
             }
         };
 
         let block = dialog_block(styles.border_type)
             .title_top(title)
-            .title_top(Line::styled(" Esc to close ", styles.widget_title_style).right_aligned())
+            .title_top(Line::styled(esc_to_close(), styles.widget_title_style).right_aligned())
             .style(styles.border_style)
             .border_style(styles.border_style);
 
@@ -788,12 +826,12 @@ impl ProcessKillDialog {
                     };
 
                     (
-                        Paragraph::new(Span::styled("Yes", yes_style)),
-                        Paragraph::new(Span::styled("No", no_style)),
+                        Paragraph::new(Span::styled(yes_label(), yes_style)),
+                        Paragraph::new(Span::styled(no_label(), no_style)),
                     )
                 };
 
-                let [yes_area, no_area] = Layout::horizontal([Constraint::Length(3); 2])
+                let [yes_area, no_area] = Layout::horizontal([Constraint::Length(6); 2])
                     .flex(Flex::SpaceEvenly)
                     .areas(button_area);
 
@@ -817,7 +855,7 @@ impl ProcessKillDialog {
 
         let block = dialog_block(styles.border_type)
             .title_top(title)
-            .title_top(Line::styled(" Esc to close ", styles.widget_title_style).right_aligned())
+            .title_top(Line::styled(esc_to_close(), styles.widget_title_style).right_aligned())
             .style(styles.border_style)
             .border_style(styles.border_style);
 
@@ -869,15 +907,25 @@ impl ProcessKillDialog {
             } => {
                 let text = Text::from(vec![
                     if let Some(pid) = pid {
-                        format!("Failed to kill process {process_name} ({pid}):").into()
+                        if is_japanese() {
+                            format!("プロセス {process_name} ({pid}) の終了に失敗しました:").into()
+                        } else {
+                            format!("Failed to kill process {process_name} ({pid}):").into()
+                        }
+                    } else if is_japanese() {
+                        format!("プロセス '{process_name}' の終了に失敗しました:").into()
                     } else {
                         format!("Failed to kill process '{process_name}':").into()
                     },
                     err.to_owned().into(),
-                    "Please press ENTER or ESC to close this dialog.".into(),
+                    if is_japanese() {
+                        "ENTER または ESC でこのダイアログを閉じてください。".into()
+                    } else {
+                        "Please press ENTER or ESC to close this dialog.".into()
+                    },
                 ])
                 .alignment(Alignment::Center);
-                let title = Line::styled(" Error ", styles.widget_title_style);
+                let title = Line::styled(error_title(), styles.widget_title_style);
 
                 self.draw_no_button_dialog(f, draw_area, styles, text, title);
             }

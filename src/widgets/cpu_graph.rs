@@ -13,6 +13,7 @@ use crate::{
         },
     },
     collection::cpu::{CpuData, CpuDataType},
+    localization::is_japanese,
     options::config::{cpu::CpuDefault, style::Styles},
 };
 
@@ -25,7 +26,13 @@ impl ColumnHeader for CpuWidgetColumn {
     fn text(&self) -> Cow<'static, str> {
         match self {
             CpuWidgetColumn::Cpu => "CPU".into(),
-            CpuWidgetColumn::Use => "Use".into(),
+            CpuWidgetColumn::Use => {
+                if is_japanese() {
+                    "使用率".into()
+                } else {
+                    "Use".into()
+                }
+            }
         }
     }
 }
@@ -61,7 +68,13 @@ impl DataToCell<CpuWidgetColumn> for CpuWidgetTableData {
         // *always* hide the CPU column if it is too small.
         match &self {
             CpuWidgetTableData::All => match column {
-                CpuWidgetColumn::Cpu => Some("All".into()),
+                CpuWidgetColumn::Cpu => {
+                    if is_japanese() {
+                        Some("全体".into())
+                    } else {
+                        Some("All".into())
+                    }
+                }
                 CpuWidgetColumn::Use => None,
             },
             CpuWidgetTableData::Entry {
@@ -73,7 +86,13 @@ impl DataToCell<CpuWidgetColumn> for CpuWidgetTableData {
                 } else {
                     match column {
                         CpuWidgetColumn::Cpu => match data_type {
-                            CpuDataType::Avg => Some("AVG".into()),
+                            CpuDataType::Avg => {
+                                if is_japanese() {
+                                    Some("平均".into())
+                                } else {
+                                    Some("AVG".into())
+                                }
+                            }
                             CpuDataType::Cpu(index) => {
                                 let index_str = index.to_string();
                                 let text = if calculated_width < CPU_TRUNCATE_BREAKPOINT {

@@ -6,6 +6,7 @@ use crate::{
         ColumnHeader, DataTableColumn, DataTableProps, DataTableStyling, DataToCell, SortColumn,
         SortDataTable, SortDataTableProps, SortOrder, SortsRow,
     },
+    localization::{is_japanese, title_temperatures},
     options::config::style::Styles,
     utils::{
         general::sort_partial_fn,
@@ -27,8 +28,20 @@ pub enum TempWidgetColumn {
 impl ColumnHeader for TempWidgetColumn {
     fn text(&self) -> Cow<'static, str> {
         match self {
-            TempWidgetColumn::Sensor => "Sensor(s)".into(),
-            TempWidgetColumn::Temp => "Temp(t)".into(),
+            TempWidgetColumn::Sensor => {
+                if is_japanese() {
+                    "センサー(s)".into()
+                } else {
+                    "Sensor(s)".into()
+                }
+            }
+            TempWidgetColumn::Temp => {
+                if is_japanese() {
+                    "温度(t)".into()
+                } else {
+                    "Temp(t)".into()
+                }
+            }
         }
     }
 }
@@ -37,7 +50,13 @@ impl TempWidgetData {
     pub fn temperature(&self) -> Cow<'static, str> {
         match &self.temperature {
             Some(temp) => temp.to_string().into(),
-            None => "N/A".into(),
+            None => {
+                if is_japanese() {
+                    "該当なし".into()
+                } else {
+                    "N/A".into()
+                }
+            }
         }
     }
 }
@@ -101,7 +120,7 @@ impl TempWidgetState {
 
         let props = SortDataTableProps {
             inner: DataTableProps {
-                title: Some(" Temperatures ".into()),
+                title: Some(title_temperatures().into()),
                 table_gap: config.table_gap,
                 left_to_right: false,
                 is_basic: config.use_basic_mode,

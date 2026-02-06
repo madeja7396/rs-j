@@ -5,6 +5,7 @@ use serde::Deserialize;
 use super::{ProcWidgetColumn, ProcWidgetData};
 use crate::{
     canvas::components::data_table::{ColumnHeader, SortsRow},
+    localization::is_japanese,
     utils::general::sort_partial_fn,
 };
 
@@ -77,23 +78,83 @@ impl ColumnHeader for ProcColumn {
     fn text(&self) -> Cow<'static, str> {
         match self {
             ProcColumn::CpuPercent => "CPU%",
-            ProcColumn::MemValue => "Mem",
-            ProcColumn::MemPercent => "Mem%",
-            ProcColumn::VirtualMem => "Virt",
+            ProcColumn::MemValue => {
+                if is_japanese() {
+                    "メモリ"
+                } else {
+                    "Mem"
+                }
+            }
+            ProcColumn::MemPercent => {
+                if is_japanese() {
+                    "メモリ%"
+                } else {
+                    "Mem%"
+                }
+            }
+            ProcColumn::VirtualMem => {
+                if is_japanese() {
+                    "仮想"
+                } else {
+                    "Virt"
+                }
+            }
             ProcColumn::Pid => "PID",
-            ProcColumn::Count => "Count",
-            ProcColumn::Name => "Name",
-            ProcColumn::Command => "Command",
+            ProcColumn::Count => {
+                if is_japanese() {
+                    "件数"
+                } else {
+                    "Count"
+                }
+            }
+            ProcColumn::Name => {
+                if is_japanese() {
+                    "名前"
+                } else {
+                    "Name"
+                }
+            }
+            ProcColumn::Command => {
+                if is_japanese() {
+                    "コマンド"
+                } else {
+                    "Command"
+                }
+            }
             ProcColumn::ReadPerSecond => "R/s",
             ProcColumn::WritePerSecond => "W/s",
             ProcColumn::TotalRead => "T.Read",
             ProcColumn::TotalWrite => "T.Write",
-            ProcColumn::State => "State",
-            ProcColumn::User => "User",
-            ProcColumn::Time => "Time",
+            ProcColumn::State => {
+                if is_japanese() {
+                    "状態"
+                } else {
+                    "State"
+                }
+            }
+            ProcColumn::User => {
+                if is_japanese() {
+                    "ユーザー"
+                } else {
+                    "User"
+                }
+            }
+            ProcColumn::Time => {
+                if is_japanese() {
+                    "時間"
+                } else {
+                    "Time"
+                }
+            }
             #[cfg(unix)]
             ProcColumn::Nice => "Nice",
-            ProcColumn::Priority => "Priority",
+            ProcColumn::Priority => {
+                if is_japanese() {
+                    "優先度"
+                } else {
+                    "Priority"
+                }
+            }
             #[cfg(feature = "gpu")]
             ProcColumn::GpuMemValue => "GMem",
             #[cfg(feature = "gpu")]
@@ -107,14 +168,44 @@ impl ColumnHeader for ProcColumn {
     fn header(&self) -> Cow<'static, str> {
         match self {
             ProcColumn::CpuPercent => "CPU%(c)".into(),
-            ProcColumn::MemValue => "Mem(m)".into(),
-            ProcColumn::MemPercent => "Mem%(m)".into(),
+            ProcColumn::MemValue => {
+                if is_japanese() {
+                    "メモリ(m)".into()
+                } else {
+                    "Mem(m)".into()
+                }
+            }
+            ProcColumn::MemPercent => {
+                if is_japanese() {
+                    "メモリ%(m)".into()
+                } else {
+                    "Mem%(m)".into()
+                }
+            }
             ProcColumn::Pid => "PID(p)".into(),
-            ProcColumn::Name => "Name(n)".into(),
-            ProcColumn::Command => "Command(n)".into(),
+            ProcColumn::Name => {
+                if is_japanese() {
+                    "名前(n)".into()
+                } else {
+                    "Name(n)".into()
+                }
+            }
+            ProcColumn::Command => {
+                if is_japanese() {
+                    "コマンド(n)".into()
+                } else {
+                    "Command(n)".into()
+                }
+            }
             #[cfg(unix)]
             ProcColumn::Nice => "Nice".into(),
-            ProcColumn::Priority => "Priority".into(),
+            ProcColumn::Priority => {
+                if is_japanese() {
+                    "優先度".into()
+                } else {
+                    "Priority".into()
+                }
+            }
             _ => self.text(),
         }
     }

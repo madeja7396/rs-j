@@ -12,6 +12,7 @@ use crate::{
     canvas::{Painter, drawing_utils::widget_block},
     collection::batteries::BatteryState,
     constants::*,
+    localization::{esc_to_go_back, is_japanese, title_battery},
     utils::text_width::display_width,
 };
 
@@ -53,11 +54,14 @@ impl Painter {
                     self.styles.border_type,
                 )
                 .border_style(border_style)
-                .title_top(Line::styled(" Battery ", self.styles.widget_title_style));
+                .title_top(Line::styled(
+                    title_battery(),
+                    self.styles.widget_title_style,
+                ));
 
                 if app_state.is_expanded {
                     block = block.title_top(
-                        Line::styled(" Esc to go back ", self.styles.widget_title_style)
+                        Line::styled(esc_to_go_back(), self.styles.widget_title_style)
                             .right_aligned(),
                     )
                 }
@@ -70,7 +74,13 @@ impl Painter {
                 let battery_names = battery_harvest
                     .iter()
                     .enumerate()
-                    .map(|(itx, _)| format!("Battery {itx}"))
+                    .map(|(itx, _)| {
+                        if is_japanese() {
+                            format!("バッテリー {itx}")
+                        } else {
+                            format!("Battery {itx}")
+                        }
+                    })
                     .collect::<Vec<_>>();
 
                 let tab_draw_loc = Layout::default()
@@ -146,8 +156,9 @@ impl Painter {
                 );
 
                 let mut battery_charge_rows = Vec::with_capacity(2);
+                let charge_label = if is_japanese() { "充電量" } else { "Charge" };
                 battery_charge_rows.push(Row::new([
-                    Cell::from("Charge").style(self.styles.text_style)
+                    Cell::from(charge_label).style(self.styles.text_style)
                 ]));
                 battery_charge_rows.push(Row::new([Cell::from(bars).style(
                     if charge_percent < 10.0 {
@@ -162,13 +173,40 @@ impl Painter {
                 let mut battery_rows = Vec::with_capacity(3);
                 let watt_consumption = battery_details.watt_consumption();
                 let health = battery_details.health();
+                let rate_label = if is_japanese() {
+                    "消費電力"
+                } else {
+                    "Rate"
+                };
+                let state_label = if is_japanese() { "状態" } else { "State" };
+                let time_to_full_label = if is_japanese() {
+                    "満充電まで"
+                } else {
+                    "Time to full"
+                };
+                let to_full_label = if is_japanese() {
+                    "満充電"
+                } else {
+                    "To full"
+                };
+                let time_to_empty_label = if is_japanese() {
+                    "空になるまで"
+                } else {
+                    "Time to empty"
+                };
+                let to_empty_label = if is_japanese() {
+                    "空まで"
+                } else {
+                    "To empty"
+                };
+                let health_label = if is_japanese() { "健全性" } else { "Health" };
 
                 battery_rows.push(Row::new([""]).bottom_margin(table_gap + 1));
                 battery_rows
-                    .push(Row::new(["Rate", &watt_consumption]).style(self.styles.text_style));
+                    .push(Row::new([rate_label, &watt_consumption]).style(self.styles.text_style));
 
                 battery_rows.push(
-                    Row::new(["State", battery_details.state.as_str()])
+                    Row::new([state_label, battery_state_text(&battery_details.state)])
                         .style(self.styles.text_style),
                 );
 
@@ -184,10 +222,11 @@ impl Painter {
                             time = long_time(*secs);
 
                             if time_width >= time.len() {
-                                battery_rows.push(Row::new(["Time to full", &time]).style(style));
+                                battery_rows
+                                    .push(Row::new([time_to_full_label, &time]).style(style));
                             } else {
                                 time = short_time(*secs);
-                                battery_rows.push(Row::new(["To full", &time]).style(style));
+                                battery_rows.push(Row::new([to_full_label, &time]).style(style));
                             }
                         }
                         BatteryState::Discharging {
@@ -196,17 +235,18 @@ impl Painter {
                             time = long_time(*secs);
 
                             if time_width >= time.len() {
-                                battery_rows.push(Row::new(["Time to empty", &time]).style(style));
+                                battery_rows
+                                    .push(Row::new([time_to_empty_label, &time]).style(style));
                             } else {
                                 time = short_time(*secs);
-                                battery_rows.push(Row::new(["To empty", &time]).style(style));
+                                battery_rows.push(Row::new([to_empty_label, &time]).style(style));
                             }
                         }
                         _ => {}
                     }
                 }
 
-                battery_rows.push(Row::new(["Health", &health]).style(self.styles.text_style));
+                battery_rows.push(Row::new([health_label, &health]).style(self.styles.text_style));
 
                 let header = if battery_harvest.len() > 1 {
                     Row::new([""]).bottom_margin(table_gap)
@@ -236,7 +276,11 @@ impl Painter {
                 let mut contents = vec![Line::default(); table_gap.into()];
 
                 contents.push(Line::from(Span::styled(
-                    "No data found for this battery",
+                    if is_japanese() {
+                        "このバッテリーのデータはありません"
+                    } else {
+                        "No data found for this battery"
+                    },
                     self.styles.text_style,
                 )));
 
@@ -265,10 +309,30 @@ fn get_hms(secs: u32) -> (u32, u32, u32) {
     (hours, minutes, seconds)
 }
 
+fn battery_state_text(state: &BatteryState) -> &str {
+    if is_japanese() {
+        match state {
+            BatteryState::Charging { .. } => "充電中",
+            BatteryState::Discharging { .. } => "放電中",
+            BatteryState::Empty => "空",
+            BatteryState::Full => "満充電",
+            BatteryState::Unknown => "不明",
+        }
+    } else {
+        state.as_str()
+    }
+}
+
 fn long_time(secs: u32) -> String {
     let (hours, minutes, seconds) = get_hms(secs);
 
-    if hours > 0 {
+    if is_japanese() {
+        if hours > 0 {
+            format!("{hours}時間{minutes}分{seconds}秒")
+        } else {
+            format!("{minutes}分{seconds}秒")
+        }
+    } else if hours > 0 {
         let h = if hours == 1 { "hour" } else { "hours" };
         let m = if minutes == 1 { "minute" } else { "minutes" };
         let s = if seconds == 1 { "second" } else { "seconds" };
@@ -285,7 +349,13 @@ fn long_time(secs: u32) -> String {
 fn short_time(secs: u32) -> String {
     let (hours, minutes, seconds) = get_hms(secs);
 
-    if hours > 0 {
+    if is_japanese() {
+        if hours > 0 {
+            format!("{hours}時間 {minutes}分 {seconds}秒")
+        } else {
+            format!("{minutes}分 {seconds}秒")
+        }
+    } else if hours > 0 {
         format!("{hours}h {minutes}m {seconds}s")
     } else {
         format!("{minutes}m {seconds}s")
@@ -295,9 +365,15 @@ fn short_time(secs: u32) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::localization::{UiLanguage, set_ui_language};
+
+    fn force_english() {
+        set_ui_language(UiLanguage::English);
+    }
 
     #[test]
     fn test_get_hms() {
+        force_english();
         assert_eq!(get_hms(10), (0, 0, 10));
         assert_eq!(get_hms(60), (0, 1, 0));
         assert_eq!(get_hms(61), (0, 1, 1));
@@ -308,6 +384,7 @@ mod tests {
 
     #[test]
     fn test_long_time() {
+        force_english();
         assert_eq!(long_time(1), "0 minutes, 1 second".to_string());
         assert_eq!(long_time(10), "0 minutes, 10 seconds".to_string());
         assert_eq!(long_time(60), "1 minute, 0 seconds".to_string());
@@ -319,6 +396,7 @@ mod tests {
 
     #[test]
     fn test_short_time() {
+        force_english();
         assert_eq!(short_time(1), "0m 1s".to_string());
         assert_eq!(short_time(10), "0m 10s".to_string());
         assert_eq!(short_time(60), "1m 0s".to_string());
@@ -330,6 +408,7 @@ mod tests {
 
     #[test]
     fn test_calculate_basic_use_bars() {
+        force_english();
         // Testing various breakpoints and edge cases.
         assert_eq!(calculate_basic_use_bars(0.0, 15), 0);
         assert_eq!(calculate_basic_use_bars(1.0, 15), 0);

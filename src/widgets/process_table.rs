@@ -24,6 +24,7 @@ use crate::{
         DataTableStyling, SortColumn, SortDataTable, SortDataTableProps, SortOrder, SortsRow,
     },
     collection::processes::{Pid, ProcessHarvest},
+    localization::is_japanese,
     options::config::style::Styles,
     utils::text_width::TextWidthMode,
     widgets::query::QueryOptions,
@@ -256,7 +257,11 @@ impl ProcWidgetState {
         default_index: usize, default_order: SortOrder,
     ) -> ProcessTable {
         let inner_props = DataTableProps {
-            title: Some(" Processes ".into()),
+            title: Some(if is_japanese() {
+                " プロセス ".into()
+            } else {
+                " Processes ".into()
+            }),
             table_gap: config.table_gap,
             left_to_right: true,
             is_basic: config.use_basic_mode,

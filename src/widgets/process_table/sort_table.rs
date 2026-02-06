@@ -2,6 +2,7 @@ use std::{borrow::Cow, num::NonZeroU16};
 
 use crate::{
     canvas::components::data_table::{ColumnHeader, DataTableColumn, DataToCell},
+    localization::sort_by_label,
     utils::text_width::{TextWidthMode, display_width},
 };
 
@@ -9,7 +10,7 @@ pub struct SortTableColumn;
 
 impl ColumnHeader for SortTableColumn {
     fn text(&self) -> Cow<'static, str> {
-        "Sort By".into()
+        sort_by_label().into()
     }
 }
 

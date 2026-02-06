@@ -14,6 +14,7 @@ use crate::{
         components::data_table::{DrawInfo, SelectionState},
         drawing_utils::widget_block,
     },
+    localization::{esc_to_close, is_japanese},
 };
 
 const SORT_MENU_WIDTH: u16 = 7;
@@ -161,7 +162,7 @@ impl Painter {
         {
             let is_selected = widget_id == app_state.current_widget.widget_id;
             let num_columns = usize::from(draw_loc.width);
-            const SEARCH_TITLE: &str = "> ";
+            let search_title = if is_japanese() { "検索 > " } else { "> " };
             let offset = 4;
             let available_width = if num_columns > (offset + 3) {
                 num_columns - offset
@@ -185,7 +186,7 @@ impl Painter {
 
             let mut search_text = vec![Line::from({
                 let mut search_vec = vec![Span::styled(
-                    SEARCH_TITLE,
+                    search_title,
                     if is_selected {
                         self.styles.table_header_style
                     } else {
@@ -221,9 +222,17 @@ impl Painter {
             let (case, whole, regex) = {
                 cfg_if::cfg_if! {
                     if #[cfg(target_os = "macos")] {
-                        ("Case(F1)", "Whole(F2)", "Regex(F3)")
+                        if is_japanese() {
+                            ("大文字(F1)", "単語一致(F2)", "正規表現(F3)")
+                        } else {
+                            ("Case(F1)", "Whole(F2)", "Regex(F3)")
+                        }
                     } else {
-                        ("Case(Alt+C)", "Whole(Alt+W)", "Regex(Alt+R)")
+                        if is_japanese() {
+                            ("大文字(Alt+C)", "単語一致(Alt+W)", "正規表現(Alt+R)")
+                        } else {
+                            ("Case(Alt+C)", "Whole(Alt+W)", "Regex(Alt+R)")
+                        }
                     }
                 }
             };
@@ -260,7 +269,7 @@ impl Painter {
 
                 if !is_basic {
                     block = block.title_top(
-                        Line::styled(" Esc to close ", current_border_style).right_aligned(),
+                        Line::styled(esc_to_close(), current_border_style).right_aligned(),
                     )
                 }
 
