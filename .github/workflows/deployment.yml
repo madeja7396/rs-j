@@ -36,7 +36,7 @@ jobs:
       - name: Resolve release metadata
         id: init
         run: |
-          if [[ "${{ github.repository }}" == "ClementTsang/bottom" || "${{ vars.RSJ_ENABLE_RELEASE_PIPELINE }}" == "1" ]]; then
+          if [[ "${{ github.repository }}" == "ClementTsang/bottom" || "${{ github.repository }}" == "madeja7396/rs-j" || "${{ vars.RSJ_ENABLE_RELEASE_PIPELINE }}" == "1" ]]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"

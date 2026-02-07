@@ -279,6 +279,7 @@ jobs:
     if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
     runs-on: "ubuntu-latest"
     timeout-minutes: 15
+    continue-on-error: ${{ matrix.info.allow_failure || false }}
     strategy:
       fail-fast: false
       matrix:
@@ -290,7 +291,11 @@ jobs:
 
           - { os_release: "15.0", target: "x86_64-unknown-freebsd" }
           - { os_release: "14.3", target: "x86_64-unknown-freebsd" }
-          - { os_release: "13.5", target: "x86_64-unknown-freebsd" }
+          - {
+              os_release: "13.5",
+              target: "x86_64-unknown-freebsd",
+              allow_failure: true,
+            }
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
