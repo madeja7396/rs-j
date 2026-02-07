@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  cat <<'EOF'
+  cat <<'USAGE'
 Usage:
   ./scripts/check_workflow_runs.sh [options]
 
@@ -16,8 +16,9 @@ Options:
 
 Notes:
   - Uses GitHub REST API: /repos/{owner}/{repo}/actions/runs
+  - If API is rate-limited/unavailable, falls back to parsing public Actions HTML.
   - Set GITHUB_TOKEN for higher API rate limits.
-EOF
+USAGE
 }
 
 SHA=""
@@ -25,6 +26,8 @@ REPO=""
 REQUIRED="ci,codecov,docs"
 WAIT_SECS=0
 POLL_INTERVAL=10
+RUN_SOURCE="api"
+FETCHED_RUNS_TSV=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -67,9 +70,16 @@ require_cmd() {
   fi
 }
 
+normalize_name() {
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//'
+}
+
 require_cmd git
 require_cmd curl
 require_cmd jq
+require_cmd perl
 
 if [[ ! "$WAIT_SECS" =~ ^[0-9]+$ ]]; then
   echo "Invalid --wait-secs '$WAIT_SECS' (must be non-negative integer)." >&2
@@ -84,6 +94,7 @@ fi
 if [[ -z "$SHA" ]]; then
   SHA="$(git rev-parse HEAD)"
 fi
+SHORT_SHA="${SHA:0:7}"
 
 infer_repo() {
   local remote_url
@@ -103,14 +114,10 @@ if [[ -z "$REPO" ]]; then
   REPO="$(infer_repo)"
 fi
 
-if [[ "$REQUIRED" == *" "* ]]; then
-  echo "Warning: spaces in --required are ignored." >&2
-fi
-
 declare -a REQUIRED_WORKFLOWS=()
 IFS=',' read -r -a RAW_REQUIRED <<<"$REQUIRED"
 for raw in "${RAW_REQUIRED[@]}"; do
-  name="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+  name="$(normalize_name "$raw")"
   if [[ -n "$name" ]]; then
     REQUIRED_WORKFLOWS+=("$name")
   fi
@@ -121,20 +128,126 @@ if [[ "${#REQUIRED_WORKFLOWS[@]}" -eq 0 ]]; then
   exit 1
 fi
 
-fetch_runs_json() {
+fetch_runs_tsv_api() {
   local url="https://api.github.com/repos/${REPO}/actions/runs?per_page=100&head_sha=${SHA}"
+  local headers_file body_file http_code message
+  headers_file="$(mktemp)"
+  body_file="$(mktemp)"
+
   if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-    curl -fsSL \
+    http_code="$(curl -sS -L \
+      -D "$headers_file" \
+      -o "$body_file" \
+      -w '%{http_code}' \
       -H "Accept: application/vnd.github+json" \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      "$url"
+      "$url")" || {
+      rm -f "$headers_file" "$body_file"
+      return 2
+    }
   else
-    curl -fsSL -H "Accept: application/vnd.github+json" "$url"
+    http_code="$(curl -sS -L \
+      -D "$headers_file" \
+      -o "$body_file" \
+      -w '%{http_code}' \
+      -H "Accept: application/vnd.github+json" \
+      "$url")" || {
+      rm -f "$headers_file" "$body_file"
+      return 2
+    }
   fi
+
+  if [[ "$http_code" == "200" ]]; then
+    jq -r '.workflow_runs[] | [.name, .status, (.conclusion // "-"), .html_url] | @tsv' "$body_file"
+    rm -f "$headers_file" "$body_file"
+    return 0
+  fi
+
+  message="$(jq -r '.message // empty' "$body_file" 2>/dev/null || true)"
+  rm -f "$headers_file" "$body_file"
+
+  if [[ "$http_code" == "403" && "$message" == *"API rate limit exceeded"* ]]; then
+    return 3
+  fi
+
+  if [[ -n "$message" ]]; then
+    echo "GitHub API returned ${http_code}: ${message}" >&2
+  else
+    echo "GitHub API returned HTTP ${http_code}." >&2
+  fi
+  return 2
+}
+
+fetch_runs_tsv_html() {
+  local url="https://github.com/${REPO}/actions?query=${SHORT_SHA}"
+  local html
+
+  html="$(curl -fsSL "$url")" || return 2
+
+  TARGET_SHORT_SHA="$SHORT_SHA" perl -0777 -ne '
+    my $target = lc($ENV{TARGET_SHORT_SHA} // "");
+    my $html = $_;
+
+    while ($html =~ m{<a href="/([^"]+/actions/runs/(\d+))"[^>]*aria-label="([^"]+)".*?Commit <a[^>]*>([0-9a-f]{7})</a>}sgi) {
+      my ($run_path, $run_id, $label, $commit_short) = ($1, $2, $3, lc($4));
+      next if $target eq "" || $commit_short ne $target;
+
+      my $workflow = "";
+      if ($label =~ /Run \d+ of (.+?)\.(?:\s|$)/i) {
+        $workflow = $1;
+      }
+      next if $workflow eq "";
+
+      my ($status, $conclusion) = ("in_progress", "-");
+      if ($label =~ /^completed successfully:/i) {
+        ($status, $conclusion) = ("completed", "success");
+      } elsif ($label =~ /^failed:/i) {
+        ($status, $conclusion) = ("completed", "failure");
+      } elsif ($label =~ /^cancelled:/i) {
+        ($status, $conclusion) = ("completed", "cancelled");
+      } elsif ($label =~ /^queued:/i) {
+        ($status, $conclusion) = ("queued", "-");
+      } elsif ($label =~ /^currently running:/i) {
+        ($status, $conclusion) = ("in_progress", "-");
+      }
+
+      print "$workflow\t$status\t$conclusion\thttps://github.com/$run_path\n";
+    }
+  ' <<<"$html"
+}
+
+fetch_runs_tsv() {
+  local api_tsv html_tsv rc
+
+  if api_tsv="$(fetch_runs_tsv_api)"; then
+    RUN_SOURCE="api"
+    FETCHED_RUNS_TSV="$api_tsv"
+    return 0
+  else
+    rc=$?
+  fi
+
+  if [[ "$rc" -eq 3 ]]; then
+    echo "GitHub API rate limit exceeded; falling back to Actions HTML scraping." >&2
+  elif [[ "$rc" -eq 2 ]]; then
+    echo "GitHub API fetch failed; attempting Actions HTML scraping." >&2
+  else
+    return "$rc"
+  fi
+
+  html_tsv="$(fetch_runs_tsv_html)" || return 2
+  if [[ -z "$html_tsv" ]]; then
+    echo "No matching workflow runs found via Actions HTML for commit ${SHORT_SHA}." >&2
+    return 2
+  fi
+
+  RUN_SOURCE="html"
+  FETCHED_RUNS_TSV="$html_tsv"
+  return 0
 }
 
 evaluate_runs() {
-  local json="$1"
+  local runs_tsv="$1"
   local pending=0
   local failed=0
 
@@ -143,19 +256,19 @@ evaluate_runs() {
   declare -A URL_BY_NAME=()
 
   while IFS=$'\t' read -r wf_name wf_status wf_conclusion wf_url; do
+    [[ -z "$wf_name" ]] && continue
     local key
-    key="$(printf '%s' "$wf_name" | tr '[:upper:]' '[:lower:]')"
+    key="$(normalize_name "$wf_name")"
     if [[ -z "${STATUS_BY_NAME[$key]+x}" ]]; then
       STATUS_BY_NAME["$key"]="$wf_status"
       CONCLUSION_BY_NAME["$key"]="$wf_conclusion"
       URL_BY_NAME["$key"]="$wf_url"
     fi
-  done < <(
-    jq -r '.workflow_runs[] | [.name, .status, (.conclusion // "-"), .html_url] | @tsv' <<<"$json"
-  )
+  done <<<"$runs_tsv"
 
   echo "Repository: ${REPO}"
   echo "SHA: ${SHA}"
+  echo "Source: ${RUN_SOURCE}"
 
   for required_name in "${REQUIRED_WORKFLOWS[@]}"; do
     if [[ -z "${STATUS_BY_NAME[$required_name]+x}" ]]; then
@@ -189,12 +302,13 @@ start_epoch="$(date +%s)"
 while true; do
   echo
   echo "Checking workflow runs..."
-  runs_json="$(fetch_runs_json)" || {
-    echo "Failed to fetch workflow runs from GitHub API." >&2
+  fetch_runs_tsv || {
+    echo "Failed to fetch workflow runs." >&2
     exit 2
   }
+  runs_tsv="$FETCHED_RUNS_TSV"
 
-  if evaluate_runs "$runs_json"; then
+  if evaluate_runs "$runs_tsv"; then
     echo
     echo "All required workflows completed successfully."
     exit 0
