@@ -189,6 +189,7 @@ pub fn error_title() -> &'static str {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "freebsd"))]
 #[inline]
 pub fn select_signal_title() -> &'static str {
     if is_japanese() {

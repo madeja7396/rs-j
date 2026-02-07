@@ -15,13 +15,12 @@ use tui::{
 use crate::{
     canvas::drawing_utils::dialog_block,
     collection::processes::Pid,
-    localization::{
-        confirm_kill_title, error_title, esc_to_close, is_japanese, no_label, select_signal_title,
-        yes_label,
-    },
+    localization::{confirm_kill_title, error_title, esc_to_close, is_japanese, no_label, yes_label},
     options::config::style::Styles,
     utils::text_width::{TextWidthMode, truncate_to_width},
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "freebsd"))]
+use crate::localization::select_signal_title;
 
 // Configure signal text based on the target OS.
 cfg_if! {
