@@ -32,6 +32,27 @@ pub enum AxisScaling {
     Linear,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct UserKeyBindings {
+    pub quit: char,
+    pub help: char,
+    pub toggle_percentages: char,
+    pub show_percentages: char,
+    pub show_values: char,
+}
+
+impl Default for UserKeyBindings {
+    fn default() -> Self {
+        Self {
+            quit: 'q',
+            help: '?',
+            toggle_percentages: '%',
+            show_percentages: 'V',
+            show_values: 'v',
+        }
+    }
+}
+
 /// AppConfigFields is meant to cover basic fields that would normally be set
 /// by config files or launch options.
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -76,6 +97,7 @@ pub struct AppConfigFields {
     pub default_tree_collapse: bool,
     pub text_width_mode: TextWidthMode,
     pub ui_language: UiLanguage,
+    pub keybindings: UserKeyBindings,
 }
 
 /// For filtering out information
@@ -265,6 +287,10 @@ impl App {
         )
     }
 
+    pub fn is_quit_key(&self, c: char) -> bool {
+        self.app_config_fields.keybindings.quit == c
+    }
+
     fn reset_multi_tap_keys(&mut self) {
         self.awaiting_second_char = false;
         self.second_char = None;
@@ -359,24 +385,54 @@ impl App {
         }
     }
 
+    fn current_proc_widget_state_mut(&mut self) -> Option<&mut crate::widgets::ProcWidgetState> {
+        let target_id = match &self.current_widget.widget_type {
+            BottomWidgetType::Proc => Some(self.current_widget.widget_id),
+            BottomWidgetType::ProcSearch => Some(self.current_widget.widget_id - 1),
+            BottomWidgetType::ProcSort => Some(self.current_widget.widget_id - 2),
+            _ => None,
+        }?;
+
+        self.states.proc_state.get_mut_widget_state(target_id)
+    }
+
+    fn set_percentages_display(&mut self, use_percentages: bool) {
+        match &self.current_widget.widget_type {
+            BottomWidgetType::BasicMem => {
+                self.basic_mode_use_percent = use_percentages;
+            }
+            BottomWidgetType::Proc | BottomWidgetType::ProcSearch | BottomWidgetType::ProcSort => {
+                if let Some(proc_widget_state) = self.current_proc_widget_state_mut() {
+                    if proc_widget_state.is_mem_percent() != use_percentages {
+                        proc_widget_state.toggle_mem_percentage();
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
     pub fn toggle_percentages(&mut self) {
         match &self.current_widget.widget_type {
             BottomWidgetType::BasicMem => {
                 self.basic_mode_use_percent = !self.basic_mode_use_percent; // Oh god this is so lazy.
             }
-            BottomWidgetType::Proc => {
-                if let Some(proc_widget_state) = self
-                    .states
-                    .proc_state
-                    .widget_states
-                    .get_mut(&self.current_widget.widget_id)
-                {
+            BottomWidgetType::Proc | BottomWidgetType::ProcSearch | BottomWidgetType::ProcSort => {
+                if let Some(proc_widget_state) = self.current_proc_widget_state_mut() {
                     proc_widget_state.toggle_mem_percentage();
                 }
             }
 
             _ => {}
         }
+    }
+
+    pub fn show_percentages(&mut self) {
+        self.set_percentages_display(true);
+    }
+
+    pub fn show_values(&mut self) {
+        self.set_percentages_display(false);
     }
 
     pub fn toggle_ignore_case(&mut self) {
@@ -1060,6 +1116,29 @@ impl App {
 
     // FIXME: Refactor this system...
     fn handle_char(&mut self, caught_char: char) {
+        if !self.help_dialog_state.is_showing_help {
+            if caught_char == self.app_config_fields.keybindings.help {
+                self.help_dialog_state.is_showing_help = true;
+                self.is_force_redraw = true;
+                return;
+            }
+
+            if caught_char == self.app_config_fields.keybindings.toggle_percentages {
+                self.toggle_percentages();
+                return;
+            }
+
+            if caught_char == self.app_config_fields.keybindings.show_percentages {
+                self.show_percentages();
+                return;
+            }
+
+            if caught_char == self.app_config_fields.keybindings.show_values {
+                self.show_values();
+                return;
+            }
+        }
+
         match caught_char {
             '/' => {
                 self.on_slash();
@@ -1208,10 +1287,6 @@ impl App {
                     }
                 }
             }
-            '?' => {
-                self.help_dialog_state.is_showing_help = true;
-                self.is_force_redraw = true;
-            }
             'H' | 'A' => self.move_widget_selection(&WidgetDirection::Left),
             'L' | 'D' => self.move_widget_selection(&WidgetDirection::Right),
             'K' | 'W' => self.move_widget_selection(&WidgetDirection::Up),
@@ -1279,7 +1354,6 @@ impl App {
                 }
             }
             'I' => self.invert_sort(),
-            '%' => self.toggle_percentages(),
             #[cfg(target_os = "linux")]
             'z' => {
                 if let BottomWidgetType::Proc = self.current_widget.widget_type {

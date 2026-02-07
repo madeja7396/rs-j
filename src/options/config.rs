@@ -2,6 +2,7 @@ pub mod cpu;
 pub mod disk;
 pub mod flags;
 mod ignore_list;
+pub mod keybindings;
 pub mod layout;
 pub mod network;
 pub mod process;
@@ -10,6 +11,7 @@ pub mod temperature;
 
 use disk::DiskConfig;
 use flags::GeneralConfig;
+use keybindings::KeyBindingsConfig;
 use network::NetworkConfig;
 use serde::{Deserialize, Serialize};
 use style::StyleConfig;
@@ -24,6 +26,7 @@ use self::{cpu::CpuConfig, layout::Row, process::ProcessesConfig};
 #[cfg_attr(test, serde(deny_unknown_fields), derive(PartialEq, Eq))]
 pub struct Config {
     pub(crate) flags: Option<GeneralConfig>,
+    pub(crate) keybindings: Option<KeyBindingsConfig>,
     pub(crate) styles: Option<StyleConfig>,
     pub(crate) row: Option<Vec<Row>>,
     pub(crate) processes: Option<ProcessesConfig>,

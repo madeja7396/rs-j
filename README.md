@@ -55,6 +55,20 @@ cargo run --release -- --ui-language en
 ```
 
 - UI 言語の既定値は `ja`（日本語）です。
+- `%` でメモリ表示をトグル、`V` で%表示固定、`v` で絶対値表示固定（既定キー）。
+
+## キーボード運用
+
+- マウスを完全に無効化したい場合:
+  - `--disable_click` または設定ファイルで `[flags].disable_click = true`
+- `%/絶対値` 切替キーは設定ファイルで変更可能:
+
+```toml
+[keybindings]
+toggle_percentages = "%"
+show_percentages = "V"
+show_values = "v"
+```
 
 ## 公開前チェック
 

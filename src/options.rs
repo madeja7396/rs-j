@@ -28,7 +28,7 @@ use starship_battery::Manager;
 
 use self::{
     args::BottomArgs,
-    config::{IgnoreList, StringOrNum, layout::Row},
+    config::{IgnoreList, StringOrNum, keybindings::KeyBindingsConfig, layout::Row},
 };
 use crate::{
     app::{filter::Filter, layout_manager::*, *},
@@ -343,6 +343,7 @@ pub(crate) fn init_app(args: BottomArgs, config: Config) -> Result<(App, BottomL
         default_tree_collapse: is_default_tree_collapsed,
         text_width_mode: get_text_width_mode(args, config)?,
         ui_language: get_ui_language(args, config)?,
+        keybindings: get_keybindings(config)?,
         #[cfg(feature = "zfs")]
         free_arc,
     };
@@ -770,6 +771,92 @@ fn get_ui_language(args: &BottomArgs, config: &Config) -> OptionResult<UiLanguag
     }
 }
 
+fn parse_keybinding_char(value: &str, field: &str) -> OptionResult<char> {
+    let trimmed = value.trim();
+    if trimmed.eq_ignore_ascii_case("space") {
+        return Ok(' ');
+    }
+
+    let mut chars = trimmed.chars();
+    if let Some(c) = chars.next() {
+        if chars.next().is_none() {
+            Ok(c)
+        } else {
+            Err(OptionError::config(format!(
+                "'{field}' must be a single character (or 'space')."
+            )))
+        }
+    } else {
+        Err(OptionError::config(format!("'{field}' cannot be empty.")))
+    }
+}
+
+fn apply_keybinding(target: &mut char, field: &str, value: &Option<String>) -> OptionResult<()> {
+    if let Some(value) = value {
+        *target = parse_keybinding_char(value, field)?;
+    }
+    Ok(())
+}
+
+fn validate_unique_keybindings(keybindings: &UserKeyBindings) -> OptionResult<()> {
+    let pairs = [
+        ("keybindings.quit", keybindings.quit),
+        ("keybindings.help", keybindings.help),
+        (
+            "keybindings.toggle_percentages",
+            keybindings.toggle_percentages,
+        ),
+        ("keybindings.show_percentages", keybindings.show_percentages),
+        ("keybindings.show_values", keybindings.show_values),
+    ];
+
+    for (idx, (left_name, left_key)) in pairs.iter().enumerate() {
+        for (right_name, right_key) in pairs.iter().skip(idx + 1) {
+            if left_key == right_key {
+                return Err(OptionError::config(format!(
+                    "'{left_name}' and '{right_name}' cannot use the same key '{left_key}'."
+                )));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn get_keybindings(config: &Config) -> OptionResult<UserKeyBindings> {
+    let mut keybindings = UserKeyBindings::default();
+
+    if let Some(KeyBindingsConfig {
+        quit,
+        help,
+        toggle_percentages,
+        show_percentages,
+        show_values,
+    }) = &config.keybindings
+    {
+        apply_keybinding(&mut keybindings.quit, "keybindings.quit", quit)?;
+        apply_keybinding(&mut keybindings.help, "keybindings.help", help)?;
+        apply_keybinding(
+            &mut keybindings.toggle_percentages,
+            "keybindings.toggle_percentages",
+            toggle_percentages,
+        )?;
+        apply_keybinding(
+            &mut keybindings.show_percentages,
+            "keybindings.show_percentages",
+            show_percentages,
+        )?;
+        apply_keybinding(
+            &mut keybindings.show_values,
+            "keybindings.show_values",
+            show_values,
+        )?;
+    }
+
+    validate_unique_keybindings(&keybindings)?;
+    Ok(keybindings)
+}
+
 /// Yes, this function gets whether to show average CPU (true) or not (false).
 fn get_show_average_cpu(args: &BottomArgs, config: &Config) -> bool {
     if args.cpu.hide_avg_cpu {
@@ -1120,9 +1207,9 @@ fn get_memory_legend_position(
 mod test {
     use clap::Parser;
 
-    use super::{Config, get_time_interval};
+    use super::{Config, get_keybindings, get_time_interval};
     use crate::{
-        app::App,
+        app::{App, UserKeyBindings},
         args::BottomArgs,
         localization::UiLanguage,
         options::{
@@ -1427,6 +1514,85 @@ mod test {
         assert_eq!(
             get_text_width_mode(&args, &config),
             Ok(crate::utils::text_width::TextWidthMode::UnicodeApprox)
+        );
+    }
+
+    #[test]
+    fn keybindings_config_parses() {
+        let config = Config {
+            keybindings: Some(crate::options::config::keybindings::KeyBindingsConfig {
+                quit: Some("x".to_string()),
+                help: Some("h".to_string()),
+                toggle_percentages: Some("p".to_string()),
+                show_percentages: Some("o".to_string()),
+                show_values: Some("i".to_string()),
+            }),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            get_keybindings(&config),
+            Ok(UserKeyBindings {
+                quit: 'x',
+                help: 'h',
+                toggle_percentages: 'p',
+                show_percentages: 'o',
+                show_values: 'i',
+            })
+        );
+    }
+
+    #[test]
+    fn keybindings_space_alias_parses() {
+        let config = Config {
+            keybindings: Some(crate::options::config::keybindings::KeyBindingsConfig {
+                help: Some("space".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            get_keybindings(&config),
+            Ok(UserKeyBindings {
+                help: ' ',
+                ..Default::default()
+            })
+        );
+    }
+
+    #[test]
+    fn keybindings_rejects_duplicate_keys() {
+        let config = Config {
+            keybindings: Some(crate::options::config::keybindings::KeyBindingsConfig {
+                toggle_percentages: Some("x".to_string()),
+                show_values: Some("x".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let err = get_keybindings(&config).unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("'keybindings.toggle_percentages' and 'keybindings.show_values'")
+        );
+    }
+
+    #[test]
+    fn keybindings_rejects_multi_char_values() {
+        let config = Config {
+            keybindings: Some(crate::options::config::keybindings::KeyBindingsConfig {
+                quit: Some("quit".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let err = get_keybindings(&config).unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("'keybindings.quit' must be a single character")
         );
     }
 

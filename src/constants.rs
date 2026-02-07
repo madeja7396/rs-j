@@ -73,7 +73,7 @@ const PROCESS_HELP_TEXT: [&str; 20] = [
     "P                       Toggle between showing the full command or just the process name",
     "s, F6                   Open process sort widget",
     "I                       Invert current sort",
-    "%                       Toggle between values and percentages for memory usage",
+    "%, V, v                Toggle/force percent/value display for memory usage",
     "t, F5                   Toggle tree mode",
     "Right                   Collapse a branch while in tree mode",
     "Left                    Expand a branch while in tree mode",
@@ -173,7 +173,7 @@ const BATTERY_HELP_TEXT: [&str; 3] = [
 
 const BASIC_MEM_HELP_TEXT: [&str; 2] = [
     "9 - Basic memory widget",
-    "%                    Toggle between values and percentages for memory usage",
+    "%, V, v              Toggle/force percent/value display for memory usage",
 ];
 
 pub(crate) const HELP_TEXT: [&[&str]; HELP_CONTENTS_TEXT.len()] = [
@@ -388,6 +388,15 @@ pub(crate) const CONFIG_TEXT: &str = r#"# This is a default config file for bott
 
 # Where to place the legend for the network widget. One of "none", "top-left", "top", "top-right", "left", "right", "bottom-left", "bottom", "bottom-right".
 #network_legend = "top-right"
+
+# Keyboard shortcut overrides (single characters).
+# Use 'space' for the space key.
+#[keybindings]
+#quit = "q"
+#help = "?"
+#toggle_percentages = "%"
+#show_percentages = "V"
+#show_values = "v"
 
 
 # Processes widget configuration

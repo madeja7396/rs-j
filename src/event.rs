@@ -57,7 +57,11 @@ pub fn handle_key_event_or_break(
 
     if event.modifiers.is_empty() {
         match event.code {
-            KeyCode::Char('q') if !app.is_in_search_widget() => return true,
+            KeyCode::Char(caught_char)
+                if app.is_quit_key(caught_char) && !app.is_in_search_widget() =>
+            {
+                return true;
+            }
             KeyCode::End => app.skip_to_last(),
             KeyCode::Home => app.skip_to_first(),
             KeyCode::Up => app.on_up_key(),
