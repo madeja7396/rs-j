@@ -225,9 +225,22 @@ jobs:
           name: "unsigned-${{ matrix.info.target }}"
           path: target/${{ matrix.info.target }}/release/btm.exe
 
+      - name: Check Windows signing availability
+        id: check-signing
+        if: startsWith(matrix.info.os, 'windows')
+        shell: bash
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          if [[ -n "${SIGNPATH_API_TOKEN}" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Sign Windows artifacts
         uses: signpath/github-action-submit-signing-request@3f9250c56651ff692d6729a2fbb0603a42d7d322 # v2.0
-        if: startsWith(matrix.info.os, 'windows') && secrets.SIGNPATH_API_TOKEN != ''
+        if: startsWith(matrix.info.os, 'windows') && steps.check-signing.outputs.enabled == 'true'
         with:
           api-token: "${{ secrets.SIGNPATH_API_TOKEN }}"
           organization-id: "06b1a1ff-74e1-4d9d-93b1-fa8180c67727"
@@ -238,7 +251,7 @@ jobs:
           output-artifact-directory: "signed"
 
       - name: Use unsigned Windows artifact when signing is unavailable
-        if: startsWith(matrix.info.os, 'windows') && secrets.SIGNPATH_API_TOKEN == ''
+        if: startsWith(matrix.info.os, 'windows') && steps.check-signing.outputs.enabled != 'true'
         shell: bash
         run: |
           mkdir -p signed
@@ -491,7 +504,6 @@ jobs:
 
   build-cirrus:
     name: "Build using Cirrus CI"
-    if: ${{ secrets.CIRRUS_TOKEN != '' }}
     runs-on: "ubuntu-latest"
     timeout-minutes: 12
     steps:
@@ -505,9 +517,18 @@ jobs:
           mkdir -p release
 
       - name: Execute Cirrus CI build script
+        id: cirrus-build
         env:
           CIRRUS_KEY: ${{ secrets.CIRRUS_TOKEN }}
         run: |
+          if [[ -z "${CIRRUS_KEY}" ]]; then
+            echo "CIRRUS_TOKEN is not set. Skipping Cirrus build."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
           if [[ "${{ github.ref_type }}" == "branch" ]]; then
             BRANCH="${{ github.ref_name }}";
           else
@@ -517,11 +538,13 @@ jobs:
           python ./scripts/ci/cirrus_release.py "$BRANCH" "release/" "${{ inputs.caller }}"
 
       - name: Generate artifact attestation for file
+        if: steps.cirrus-build.outputs.skipped != 'true'
         uses: actions/attest-build-provenance@6149ea5740be74af77f260b9db67e633f6b0a9a1 # v1.4.2
         with:
           subject-path: "release/**/*.tar.gz"
 
       - name: Save release as artifact
+        if: steps.cirrus-build.outputs.skipped != 'true'
         uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           retention-days: 3
