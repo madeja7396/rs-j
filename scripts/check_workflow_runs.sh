@@ -220,8 +220,21 @@ fetch_runs_tsv() {
   local api_tsv html_tsv rc
 
   if api_tsv="$(fetch_runs_tsv_api)"; then
-    RUN_SOURCE="api"
-    FETCHED_RUNS_TSV="$api_tsv"
+    if [[ -n "$api_tsv" ]]; then
+      RUN_SOURCE="api"
+      FETCHED_RUNS_TSV="$api_tsv"
+      return 0
+    fi
+
+    echo "GitHub API returned no workflow runs for ${SHORT_SHA}; attempting Actions HTML scraping." >&2
+    html_tsv="$(fetch_runs_tsv_html)" || return 2
+    if [[ -z "$html_tsv" ]]; then
+      echo "No matching workflow runs found via API or Actions HTML for commit ${SHORT_SHA}." >&2
+      return 2
+    fi
+
+    RUN_SOURCE="html"
+    FETCHED_RUNS_TSV="$html_tsv"
     return 0
   else
     rc=$?
