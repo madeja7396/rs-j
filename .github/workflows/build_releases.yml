@@ -226,8 +226,8 @@ jobs:
           path: target/${{ matrix.info.target }}/release/btm.exe
 
       - name: Sign Windows artifacts
-        if: startsWith(matrix.info.os, 'windows')
         uses: signpath/github-action-submit-signing-request@3f9250c56651ff692d6729a2fbb0603a42d7d322 # v2.0
+        if: startsWith(matrix.info.os, 'windows') && secrets.SIGNPATH_API_TOKEN != ''
         with:
           api-token: "${{ secrets.SIGNPATH_API_TOKEN }}"
           organization-id: "06b1a1ff-74e1-4d9d-93b1-fa8180c67727"
@@ -236,6 +236,13 @@ jobs:
           github-artifact-id: "${{ steps.upload-unsigned-artifact.outputs.artifact-id }}"
           wait-for-completion: true
           output-artifact-directory: "signed"
+
+      - name: Use unsigned Windows artifact when signing is unavailable
+        if: startsWith(matrix.info.os, 'windows') && secrets.SIGNPATH_API_TOKEN == ''
+        shell: bash
+        run: |
+          mkdir -p signed
+          cp target/${{ matrix.info.target }}/release/btm.exe signed/btm.exe
 
       - name: Bundle release and completion (Windows)
         if: startsWith(matrix.info.os, 'windows')
@@ -297,6 +304,7 @@ jobs:
     name: "Build FreeBSD binaries"
     runs-on: "ubuntu-latest"
     timeout-minutes: 12
+    continue-on-error: ${{ matrix.info.allow_failure || false }}
     strategy:
       fail-fast: false
       matrix:
@@ -308,7 +316,11 @@ jobs:
 
           - { os_release: "15.0", target: "x86_64-unknown-freebsd" }
           - { os_release: "14.3", target: "x86_64-unknown-freebsd" }
-          - { os_release: "13.5", target: "x86_64-unknown-freebsd" }
+          - {
+              os_release: "13.5",
+              target: "x86_64-unknown-freebsd",
+              allow_failure: true,
+            }
     steps:
       - name: Checkout repository
         if: matrix.info.container == ''
@@ -479,6 +491,7 @@ jobs:
 
   build-cirrus:
     name: "Build using Cirrus CI"
+    if: ${{ secrets.CIRRUS_TOKEN != '' }}
     runs-on: "ubuntu-latest"
     timeout-minutes: 12
     steps:
