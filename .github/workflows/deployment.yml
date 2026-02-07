@@ -118,6 +118,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [initialize, generate-choco, build-release]
     if: ${{ needs.initialize.outputs.enabled == 'true' }}
+    permissions:
+      contents: write
     steps:
       - name: Set release version
         shell: bash
