@@ -18,6 +18,7 @@
 - `./scripts/check_env.sh` が成功する
 - `./scripts/release_prep.sh --help` が実行できる
 - `./scripts/check_workflow_runs.sh --help` が実行できる
+- `./scripts/publish_release.sh --help` が実行できる
 - Rust stable + `rustfmt` + `clippy` が使える
 
 ## CI
@@ -36,7 +37,8 @@
 ## 公開作業
 
 - `main` が最新 (`git pull --ff-only origin main`)
-- `./scripts/release_prep.sh --tag X.Y.Z` が通過（例: `0.12.5`）
-- `X.Y.Z` 形式タグを作成して push（例: `0.12.5`）
+- `./scripts/release_prep.sh --tag X.Y.Z` が通過（例: `0.12.13`）
+- `./scripts/publish_release.sh --tag X.Y.Z` でタグ作成・push・Release作成（token有効時）を実行（例: `0.12.13`）
+- `X.Y.Z` 形式タグを作成して push（手動時、例: `0.12.13`）
 - `deployment` workflow が起動・成功
 - GitHub で description / topics / release notes を設定・公開

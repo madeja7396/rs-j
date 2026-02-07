@@ -41,13 +41,23 @@ cargo run --release -- --help
 例:
 
 ```bash
-cargo run --release -- --safe_terminal --width_mode cjk
+cargo run --release -- --ui-language ja --safe_terminal --width_mode cjk
 ```
+
+英語UIに切り替える場合:
+
+```bash
+cargo run --release -- --ui-language en
+```
+
+- UI 言語の既定値は `ja`（日本語）です。
 
 ## 公開前チェック
 
 ```bash
-./scripts/release_prep.sh --tag 0.12.5
+./scripts/release_prep.sh --tag 0.12.13
+./scripts/check_workflow_runs.sh --wait-secs 900
+./scripts/publish_release.sh --tag 0.12.13
 ```
 
 ## 上流同期
@@ -79,3 +89,4 @@ git merge upstream/main
   - `RSJ_ENABLE_CODECOV=1`
 - push 後の主要 workflow 確認:
   - `./scripts/check_workflow_runs.sh --wait-secs 900`
+  - API レート制限時は自動で Actions HTML を参照して継続判定

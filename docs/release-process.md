@@ -7,7 +7,7 @@
 推奨:
 
 ```bash
-./scripts/release_prep.sh --tag 0.12.5
+./scripts/release_prep.sh --tag 0.12.13
 ```
 
 手動実行する場合:
@@ -35,16 +35,21 @@ GitHub Actions の公開系ジョブを使う場合:
 - `v0.1.0` や `0.12.5-alpha.1` のようなタグは `deployment` の `push.tags` 条件に一致しません。
 
 推奨:
-- 自動ビルド付き安定リリース: `0.12.5`
+- 自動ビルド付き安定リリース: `0.12.13`
 - 追加の人間向け識別子が必要なら補助タグを併用:
   - 例: `v0.1.0-alpha.1`（補助タグ）
-  - 例: `0.12.5`（CIトリガー用タグ）
+  - 例: `0.12.13`（CIトリガー用タグ）
 
 ## 3. タグ作成と push
 
 ```bash
-git tag -a 0.12.5 -m "rs-j 0.12.5 release"
-git push origin 0.12.5
+GITHUB_TOKEN=... ./scripts/publish_release.sh --tag 0.12.13
+```
+
+`GITHUB_TOKEN` なしで手動公開する場合:
+
+```bash
+./scripts/publish_release.sh --tag 0.12.13
 ```
 
 ## 4. GitHub Actions 確認
@@ -68,9 +73,15 @@ git push origin 0.12.5
 - `./scripts/release_prep.sh --skip-clippy` / `--skip-tests` で段階実行も可能
 - fork では上記 variables 未設定時、`docs` は build のみ実行し、`deployment` / `codecov coverage` はスキップされる
 - `check_workflow_runs.sh` は既定で `ci,codecov,docs` を確認する（`--required` で変更可能）
+- `check_workflow_runs.sh` は API がレート制限された場合、公開 Actions HTML 解析へ自動フォールバックする
+- `publish_release.sh` は `GITHUB_TOKEN` がある場合、GitHub Release の作成/更新まで自動実行する
 
 ## 5. Release ページ公開
 
-1. GitHub Release の draft を開く
-2. `docs/release-notes.md` を本文に転記
-3. アセット・本文・タグを確認して publish
+1. `GITHUB_TOKEN` を設定して以下を実行:
+
+```bash
+./scripts/publish_release.sh --tag 0.12.13
+```
+
+2. draft 作成後に GitHub の Release ページで本文とアセットを確認して publish

@@ -1,7 +1,7 @@
 # rs-j リリースノート（草案）
 
-対象バージョン: `v0.1.0-alpha.1`  
-ベース: `bottom` upstream
+対象バージョン: `0.12.13`  
+ベース: `bottom v0.12.3`
 
 ## 追加
 
@@ -9,6 +9,9 @@
   - 互換重視プロファイルを有効化（basic + ASCII 寄り描画）
 - `--width_mode` / `flags.width_mode`
   - `normal` / `cjk` / `unicode-approx`
+- `--ui-language` / `flags.ui_language`
+  - `ja` / `en` を切り替え可能
+  - 主要 UI（ヘルプ/ダイアログ/テーブル見出し/ステータス）を日本語化
 - プロセス検索の NFKC 正規化
   - 全角/半角・半角カナ揺れを吸収
   - 全角の `AND` / `OR` / 括弧 / 検索接頭辞も解釈
@@ -29,10 +32,11 @@
 
 - `cargo fmt --all`
 - `cargo check`
-- `cargo test --lib`（170 tests passed）
+- `cargo test`（172 unit tests passed）
+- `cargo clippy --all-targets --workspace --all-features -- -D warnings`
 
 ## 公開前 TODO
 
-- GitHub Release ページに本ノートを転記
-- タグ付け（例: `v0.1.0-alpha.1`）と成果物添付
-- README のコマンド例と既知制約を最終確認
+- `./scripts/release_prep.sh --tag 0.12.13`
+- `./scripts/check_workflow_runs.sh --wait-secs 900`
+- `GITHUB_TOKEN=... ./scripts/publish_release.sh --tag 0.12.13`

@@ -44,6 +44,9 @@
   - `deployment` workflow に常時実行の初期ジョブを追加し、fork 既定での startup_failure を解消
   - `RSJ_ENABLE_RELEASE_PIPELINE` 未設定時は明示メッセージで skip 理由を表示
   - `build_releases.yml` 呼び出しに必要な `permissions`（`id-token` / `attestations`）を caller に付与
+- Phase 11 着手:
+  - `check_workflow_runs.sh` に GitHub API レート制限時の HTML フォールバックを追加
+  - `scripts/publish_release.sh` を追加し、タグ作成/push と Release 作成更新を自動化
 - 未完了:
   - GitHub Release のタグ作成と公開（Phase 5）
 
