@@ -27,7 +27,7 @@ USAGE
 TAG=""
 NOTES_FILE="docs/release-notes.md"
 TITLE=""
-DRAFT=1
+DRAFT=true
 SKIP_TAG_PUSH=0
 
 while [[ $# -gt 0 ]]; do
@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --publish)
-      DRAFT=0
+      DRAFT=false
       shift
       ;;
     --skip-tag-push)
