@@ -8,9 +8,9 @@ body:
       label: Checklist
       options:
         - label: >
-            I've looked through the [troubleshooting docs](https://bottom.pages.dev/nightly/troubleshooting),
-            [the known problems list](https://bottom.pages.dev/nightly/support/official/#known-problems), and 
-            [existing open issues](https://github.com/ClementTsang/bottom/issues?q=is%3Aopen+is%3Aissue) for similar
+            I've looked through the [troubleshooting docs](https://github.com/madeja7396/rs-j/blob/main/docs/content/troubleshooting.md),
+            [support docs](https://github.com/madeja7396/rs-j/blob/main/docs/content/support/official.md), and
+            [existing open issues](https://github.com/madeja7396/rs-j/issues?q=is%3Aopen+is%3Aissue) for similar
             issues.
           required: true
 
@@ -20,7 +20,7 @@ body:
       label: What operating system and version are you using?
       description: >
         Please provide the operating system(s) and version(s) that are experiencing the problem.
-        Note that issues on operating systems that [are not officially supported](https://github.com/ClementTsang/bottom#support)
+        Note that issues on operating systems that are not officially supported
         may not be prioritized/resolved.
       placeholder: Arch Linux 6.6.2
 
@@ -30,7 +30,7 @@ body:
       label: What architecture are you using?
       description: >
         Please select the architecture(s) that are experiencing the problem.
-        Note that systems that [are not officially supported](https://github.com/ClementTsang/bottom#support)
+        Note that systems that are not officially supported
         may not be prioritized/resolved.
       multiple: true
       options:
@@ -43,9 +43,9 @@ body:
   - type: textarea
     id: terminal
     attributes:
-      label: What terminal(s) are you running bottom on that are experiencing the problem?
+      label: What terminal(s) are you running rs-j on that are experiencing the problem?
       description: >
-        Please provide what terminal(s) you are running `bottom` on (e.g. Konsole, kitty, urxvt)
+        Please provide what terminal(s) you are running `rs-j` (`btm`) on (e.g. Konsole, kitty, urxvt)
         that are experiencing the issue, as well as their version and any relevant settings (e.g. terminal theme).
       placeholder: kitty 0.25.2
 
@@ -67,19 +67,19 @@ body:
         - ZFS
         - Btrfs
         - APFS
-        - Other (please specify in the Additional Information area at the end)"
+        - Other (please specify in the Additional Information area at the end)
 
   - type: input
     id: version
     validations:
       required: true
     attributes:
-      label: What version of bottom are you running?
+      label: What version of rs-j are you running?
       description: >
-        Please specify which version of `bottom` you're running that is causing problems. You can find this with
+        Please specify which version of `rs-j` you're running that is causing problems. You can find this with
         `btm -V`. If you are using a nightly/non-release version, please also specify that.
 
-        It would also be helpful if you are not running [the latest version](https://github.com/ClementTsang/bottom/releases/latest)
+        It would also be helpful if you are not running [the latest version](https://github.com/madeja7396/rs-j/releases/latest)
         to try that as well to see if the issue has already been resolved.
       placeholder: 0.12.3
 
@@ -88,12 +88,10 @@ body:
     validations:
       required: true
     attributes:
-      label: How did you install bottom?
+      label: How did you install rs-j?
       description: >
-        Please describe how you installed `bottom`. If you manually compiled it, please also mention your _Rust version_.
-
-        **Note: if you installed `bottom` from cargo, please ensure that you installed the right crate (https://crates.io/crates/bottom).**
-      placeholder: Installed bottom through the Arch official repos.
+        Please describe how you installed `rs-j`. If you manually compiled it, please also mention your _Rust version_.
+      placeholder: Installed from GitHub Releases / built from source with cargo.
 
   # TODO: After some point also add in a `btm check` invocation
 
@@ -107,7 +105,7 @@ body:
         Give a description of the issue. If possible, provide screenshots/videos.
       placeholder: |
         Example:
-        bottom is failing to output information for a mounted encrypted partition on basic mode. It should be able to report this information, but I'm not seeing the entry at all.
+        rs-j is failing to output information for a mounted encrypted partition on basic mode. It should be able to report this information, but I'm not seeing the entry at all.
 
   - type: textarea
     id: expected

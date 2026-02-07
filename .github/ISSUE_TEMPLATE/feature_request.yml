@@ -8,8 +8,8 @@ body:
       label: Checklist
       options:
         - label: >
-            I've looked through [the documentation](https://bottom.pages.dev/nightly/) and 
-            [existing open issues](https://github.com/ClementTsang/bottom/issues?q=is%3Aopen+is%3Aissue+label%3Afeature)
+            I've looked through [the documentation](https://github.com/madeja7396/rs-j/tree/main/docs) and
+            [existing open issues](https://github.com/madeja7396/rs-j/issues?q=is%3Aopen+is%3Aissue+label%3Afeature)
             for similar feature requests.
           required: true
 

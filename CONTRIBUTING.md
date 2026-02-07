@@ -2,6 +2,12 @@
 
 Contributions are welcome: bug reports, feature proposals, code, docs, and CI improvements.
 
+## Community Guidelines
+
+- Code of Conduct: `CODE_OF_CONDUCT.md`
+- Security reporting: `SECURITY.md`
+- Support channels: `SUPPORT.md`
+
 ## Issue Templates
 
 - Bug report:

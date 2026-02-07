@@ -2,6 +2,10 @@
 
 `bottom` をベースに、`Windows cmd / PowerShell / WSL` でも破綻しにくく、日本語表示と日本語検索に強い TUI を目指す fork です。
 
+[![CI](https://github.com/madeja7396/rs-j/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/madeja7396/rs-j/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/madeja7396/rs-j/branch/main/graph/badge.svg)](https://codecov.io/gh/madeja7396/rs-j)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ## 状態
 
 上流 `bottom` の `main` を取り込み済みです。  
@@ -55,9 +59,9 @@ cargo run --release -- --ui-language en
 ## 公開前チェック
 
 ```bash
-./scripts/release_prep.sh --tag 0.12.13
+./scripts/release_prep.sh --tag 0.12.15
 ./scripts/check_workflow_runs.sh --wait-secs 900
-./scripts/publish_release.sh --tag 0.12.13
+./scripts/publish_release.sh --tag 0.12.15
 ```
 
 ## 上流同期
@@ -79,6 +83,14 @@ git merge upstream/main
 - 公開チェックリスト: `docs/github-publication-checklist.md`
 - リリース手順: `docs/release-process.md`
 - リリースノート草案: `docs/release-notes.md`
+- 拡張ドキュメント: `docs/content/index.md`
+
+## コミュニティとサポート
+
+- 貢献ガイド: `CONTRIBUTING.md`
+- 行動規範: `CODE_OF_CONDUCT.md`
+- セキュリティ報告: `SECURITY.md`
+- サポート窓口: `SUPPORT.md`
 
 ## CI 補足
 
